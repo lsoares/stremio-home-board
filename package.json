@@ -1,0 +1,17 @@
+{
+  "name": "stremio-home-board",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "vitest run --dir test",
+    "check": "biome check . && knip && tsc --noEmit -p . && vitest run --dir test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "@types/node": "^26.6.5",
+    "knip": "^6.39.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}

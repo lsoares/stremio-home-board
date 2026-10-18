@@ -8,13 +8,13 @@ A page to look after your Stremio addons: put them in the order you want, hide t
 
 - **Order.** Drag an addon by its icon or name, or use the arrows. The order of the addons is the order of their rows on the Board, and of the streams.
 - **Lists.** Open an addon to tick or untick each of its lists, and to put the ones left in order. An addon with every list unticked stays installed, for its streams or its search, and stays on the page.
-- **Cinemeta stays where it is,** above the addons that have titles of their own with ids of their own (such as Cotonet's), as the addons that find streams only know the ids of IMDb. The page doesn't offer a place that would put anything above it.
+- **Cinemeta's place is warned about, not kept.** Put Cinemeta below an addon that has titles of its own with ids of its own (such as Cotonet's) and a ⚠️ says the addons that find streams only know the ids of IMDb, and may find nothing. Nothing stops you.
 - **Upgrade all.** Stremio keeps what each addon said when you installed it and doesn't ask again. This asks each addon what it says now and puts it in your account, keeping the lists you hid and the order you gave.
 - **Back up and Restore.** Back up downloads a file with your addons as they are. Restore reads it, shows what would change (addons to put back, lists, order), and only does it when you say so. Nothing is uninstalled by a restore.
 - **Configure** opens the addon's own page, in another tab.
 - Only the addons with lists for the Board are shown, and a line says so; the others are left alone, in the places they had.
 
-`?first=<addon id>` puts that addon first, after Cinemeta; addons use it for a "put me first" button.
+`?first=<addon id>` puts that addon second, after Cinemeta (first when there is no Cinemeta); addons use it for a "put me first" button.
 
 ## What it knows, and where it goes
 

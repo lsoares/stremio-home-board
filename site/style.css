@@ -169,6 +169,13 @@ a {
 #status {
   margin-top: 1rem;
 }
+#warning {
+  margin: 1rem 0 0;
+  color: var(--bad);
+}
+#warning:empty {
+  display: none;
+}
 #status.good {
   color: var(--good);
   font-weight: 600;
@@ -236,10 +243,6 @@ a {
 .addons li .logo-small,
 .addons li strong {
   cursor: grab;
-}
-.addons li.fixed .logo-small,
-.addons li.fixed strong {
-  cursor: default;
 }
 .addons .lists summary {
   list-style: none;
@@ -359,16 +362,9 @@ a.move {
   place-items: center;
   text-decoration: none;
 }
-span.move {
-  display: inline-block;
-}
 .move:hover:not(:disabled) {
   color: var(--accent);
   background: var(--line);
-}
-.move.info {
-  display: grid;
-  place-items: center;
 }
 .move.remove:hover:not(:disabled) {
   color: var(--bad);

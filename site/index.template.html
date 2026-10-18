@@ -37,6 +37,7 @@ try {
 </ol>
 <button class="button" id="connect" type="button">Connect to Stremio</button>
 <ol class="addons" id="addons" hidden></ol>
+<p id="warning" role="status"></p>
 <div class="footer">
 <div>
 <p id="filtered"></p>
@@ -50,15 +51,6 @@ try {
 <h2 id="confirm-title"></h2>
 <p>It will disappear from your Stremio. You can install it again whenever you like.</p>
 <button class="button danger" value="uninstall">Uninstall</button>
-</form>
-</dialog>
-<dialog id="why" aria-labelledby="why-title">
-<form method="dialog">
-<button class="move close" value="close" aria-label="Close" title="Close" autofocus>✕</button>
-<h2 id="why-title">Cinemeta stays where it is</h2>
-<p>Stremio takes the page of a title from the first addon that has it, and the addons that find streams only know the ids of IMDb, which Cinemeta has. So Cinemeta stays above the addons with titles of their own, such as Cotonet.</p>
-<p>You can still turn its lists on or off: open its row.</p>
-<button class="button" value="close">Got it</button>
 </form>
 </dialog>
 <dialog id="restoring" aria-labelledby="restoring-title">
@@ -190,7 +182,7 @@ async function load(key) {
 function putFirst() {
   const shown = visible()
   const at = shown.findIndex(addon => addon.manifest.id === firstId)
-  // First is after Cinemeta, which stays at the top of the Board's addons; where there is none, first
+  // First is second, after Cinemeta, so the addons that find streams still have it above what asked; where there is none, first
   const top = shown.findIndex(addon => addon.manifest.id === "com.linvo.cinemeta") + 1
   if (at === -1) say("That addon isn't installed in your Stremio yet. Install it first, and come back.", "bad")
   else if (at === top || at === top - 1) say("It's already first. Drag the others if you want them in another order.")
@@ -204,21 +196,29 @@ function visible() {
 
 function render() {
   const shown = visible()
+  warnAboutCinemeta(shown)
   list.replaceChildren(...shown.map(item))
   // The addons with no lists for the Board are not here, and it says so, so the ones that seem missing are not looked for
   document.getElementById("filtered").textContent =
     shown.length < addons.length ? "Showing " + shown.length + " of " + addons.length + " addons: only the ones with lists for the Board" : ""
 }
 
+// Stremio takes a title's page from the first addon that has it, and the addons that find streams only know the ids of IMDb, which Cinemeta has: with an addon that has
+// titles with ids of its own above Cinemeta, they have nothing to be asked for. It is not stopped, it is said
+function warnAboutCinemeta(shown) {
+  const right = withCinemetaFirst(shown)
+  const at = right.findIndex(addon => addon.manifest.id === "com.linvo.cinemeta")
+  const above = shown.some((addon, place) => addon !== right[place]) ? right[at + 1] : undefined
+  document.getElementById("warning").textContent = above
+    ? "⚠️ Cinemeta is below " + above.manifest.name + ": stream addons may find nothing."
+    : ""
+}
+
 function item(addon, at) {
   const row = document.createElement("li")
   // Dragged by the top of it, where the icon and the name are, and not by its lists or its buttons: it is made draggable as the pointer goes down there, and not before
-  // Cinemeta stays where it is, above the addons with titles of their own, so it isn't dragged
-  const fixed = addon.manifest.id === "com.linvo.cinemeta"
-  // The one that stays where it is has no hand either, as the hand says it can be dragged
-  if (fixed) row.classList.add("fixed")
   row.addEventListener("pointerdown", event => {
-    row.draggable = !fixed && !event.target.closest(".list, button, a, input, label")
+    row.draggable = !event.target.closest(".list, button, a, input, label")
   })
   row.addEventListener("pointerup", () => {
     row.draggable = false
@@ -233,8 +233,7 @@ function item(addon, at) {
   const lists = listsOf(addon)
   // The kinds are the first words of the line that opens the lists, when there are lists to open
   name.append(title, lists.hasChildNodes() ? lists : more)
-  // The one that stays where it is has an (i) that says why in place of the arrows, as there is nothing to move it with; the places of the others are kept so the crosses line up
-  row.append(logo, name, configureLink(addon), ...(fixed ? [keptPlace(), whyItStays()] : [arrow(addon, at, -1, "▲", "up"), arrow(addon, at, 1, "▼", "down")]), uninstallButton(addon))
+  row.append(logo, name, configureLink(addon), arrow(addon, at, -1, "▲", "up"), arrow(addon, at, 1, "▼", "down"), uninstallButton(addon))
   // A click on the row opens or closes its lists, except on what has a click of its own
   row.addEventListener("click", event => {
     const lists = row.querySelector("details")
@@ -252,9 +251,7 @@ function item(addon, at) {
   })
   // Where it would land is a line, above this one or below it by where in it the pointer is, and not the addon it is over
   row.addEventListener("dragover", event => {
-    const slot = isBefore(event, row) ? at : at + 1
-    // Where it would go above Cinemeta, which stays above the addons with titles of their own, is not a place to drop: it has no line and takes no drop
-    if (dragFrom === -1 || wouldGoAboveCinemeta(dragFrom, slot > dragFrom ? slot - 1 : slot)) return row.classList.remove("drop-before", "drop-after")
+    if (dragFrom === -1) return
     event.preventDefault()
     const before = isBefore(event, row)
     row.classList.toggle("drop-before", before)
@@ -584,26 +581,6 @@ function configureLink(addon) {
   return link
 }
 
-function keptPlace() {
-  const place = document.createElement("span")
-  place.className = "move"
-  place.style.visibility = "hidden"
-  return place
-}
-
-// Opens the box that tells why Cinemeta can't be moved, and that its lists can be turned off
-function whyItStays() {
-  const button = document.createElement("button")
-  button.type = "button"
-  button.className = "move info"
-  button.setAttribute("aria-label", "Why Cinemeta can't be moved")
-  button.title = "Why it can't be moved"
-  button.innerHTML =
-    '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>'
-  button.addEventListener("click", () => document.getElementById("why").showModal())
-  return button
-}
-
 // For where a drag can't be, as on a phone, and for the keyboard
 function arrow(addon, at, step, symbol, direction) {
   const button = document.createElement("button")
@@ -612,7 +589,7 @@ function arrow(addon, at, step, symbol, direction) {
   button.textContent = symbol
   button.setAttribute("aria-label", "Move " + addon.manifest.name + " " + direction)
   button.title = "Move " + direction
-  button.disabled = at + step < 0 || at + step >= visible().length || wouldGoAboveCinemeta(at, at + step)
+  button.disabled = at + step < 0 || at + step >= visible().length
   button.addEventListener("click", () => move(at, at + step, direction))
   return button
 }
@@ -646,25 +623,11 @@ function uninstall(addon) {
   record({ kind: "uninstall", address: addon.transportUrl }, "Uninstalled " + addon.manifest.name + " ✓")
 }
 
-// Whether the addon at one place, put at another, would have Cinemeta go above it, as Cinemeta stays above the first addon with the titles of IMDb's ids with ids of its own;
-// and only if it was where it should be before, as one that is not already can be moved
-function wouldGoAboveCinemeta(from, to) {
-  const now = visible()
-  if (withCinemetaFirst(now).some((addon, place) => addon !== now[place])) return false
-  const rest = now.slice()
-  const [moved] = rest.splice(from, 1)
-  const wanted = [...rest.slice(0, to), moved, ...rest.slice(to)]
-  return withCinemetaFirst(wanted).some((addon, place) => addon !== wanted[place])
-}
-
 // Said by the one it goes before, and not by its place, as the places are not the same when it is put over what Stremio has then
 function move(from, to, direction) {
   const rest = visible()
   const [moved] = rest.splice(from, 1)
-  record(
-    { kind: "move", address: moved.transportUrl, before: rest[to] ? rest[to].transportUrl : "" },
-    wouldGoAboveCinemeta(from, to) ? "Cinemeta stays above " + moved.manifest.name + ": the addons that find streams only know the ids of IMDb ✓" : undefined,
-  )
+  record({ kind: "move", address: moved.transportUrl, before: rest[to] ? rest[to].transportUrl : "" })
   if (direction) list.children[to].querySelector('[aria-label$="' + direction + '"]').focus()
 }
 
@@ -676,9 +639,8 @@ function put(collection, change) {
   const rest = shown.filter(addon => addon !== moved)
   const at = rest.findIndex(addon => addon.transportUrl === change.before)
   rest.splice(at === -1 ? rest.length : at, 0, moved)
-  const ordered = withCinemetaFirst(rest)
   let next = 0
-  return collection.map(addon => (isOnBoard(addon) ? ordered[next++] : addon))
+  return collection.map(addon => (isOnBoard(addon) ? rest[next++] : addon))
 }
 
 // What the page tells, below the list, green when it went well and red when it didn't

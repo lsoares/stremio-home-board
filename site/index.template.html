@@ -79,12 +79,16 @@ const seen = readSeen()
 const answered = {}
 // The addons whose lists are showing, by address, as the page is drawn again at each change and would close them
 const opened = new Set()
+// The first titles of each list, by the addon's address and the list: what it answered when its row was opened
+const previews = {}
 // What Stremio had when the page last read or saved it, and what was done here since, as the changes and not as the result: a save puts the changes
 // over what Stremio has then, so what was done elsewhere meanwhile, as an addon installed, stays; and what is shown is the one with the other
 let server = []
 let pending = []
 // Where the addon being dragged is, so that the places it can't go to are not offered while it is over them
 let dragFrom = -1
+// The list being dragged, and the addon it is of, as a list goes only among the ones of its own addon
+let listDrag = null
 
 // FUNCTIONS
 
@@ -328,6 +332,7 @@ function toggleOpen(addon) {
   opened.clear()
   if (!was) opened.add(addon.transportUrl)
   render()
+  if (!was) askForPreviews(addon)
 }
 
 // What is under the row, across all of it: what the addon says of itself, and its lists, to tick and to put in order, if it has more than one. With none ticked an addon stays
@@ -373,9 +378,83 @@ function bodyOf(addon, marks) {
         listArrow(addon, catalog, "▼", "down", place === shown.length - 1, () => shift(addon, catalog, shown[place + 2])),
       )
     }
-    box.append(row)
+    // The line and its posters are one, and are what is dragged: only the ones ticked, as they are the ones in an order
+    const entry = document.createElement("div")
+    entry.className = "entry"
+    entry.append(row)
+    const titles = previews[previewKey(addon, catalog)] || []
+    if (titles.length) entry.append(previewOf(titles, on))
+    if (on) makeDraggable(entry, addon, catalog, shown)
+    box.append(entry)
   })
   return box
+}
+
+// A list is dragged onto another of the same addon, to go above it or below it by where in it the pointer is. What is said here does not go to the row of the addon, which is dragged too
+function makeDraggable(entry, addon, catalog, shown) {
+  entry.draggable = true
+  entry.addEventListener("dragstart", event => {
+    event.stopPropagation()
+    event.dataTransfer.setData("text/plain", "")
+    listDrag = { address: addon.transportUrl, catalog }
+    entry.classList.add("dragging")
+  })
+  entry.addEventListener("dragend", () => {
+    entry.classList.remove("dragging")
+    listDrag = null
+  })
+  entry.addEventListener("dragover", event => {
+    if (!listDrag || listDrag.address !== addon.transportUrl || sameList(listDrag.catalog, catalog)) return
+    event.preventDefault()
+    event.stopPropagation()
+    const before = isBefore(event, entry)
+    entry.classList.toggle("drop-before", before)
+    entry.classList.toggle("drop-after", !before)
+  })
+  entry.addEventListener("dragleave", () => entry.classList.remove("drop-before", "drop-after"))
+  entry.addEventListener("drop", event => {
+    event.stopPropagation()
+    entry.classList.remove("drop-before", "drop-after")
+    if (!listDrag || listDrag.address !== addon.transportUrl) return
+    event.preventDefault()
+    const moved = shown.find(other => sameList(other, listDrag.catalog))
+    const rest = shown.filter(other => other !== moved)
+    const at = rest.findIndex(other => sameList(other, catalog)) + (isBefore(event, entry) ? 0 : 1)
+    const next = rest[at] || null
+    if (moved && next !== shown[shown.indexOf(moved) + 1]) shift(addon, moved, next)
+  })
+}
+
+// The first titles of a list, as posters, under its line: what the Board would show in it, faded when the list is hidden from it
+function previewOf(titles, on) {
+  const strip = document.createElement("div")
+  strip.className = on ? "preview" : "preview faded"
+  for (const { name, poster } of titles) {
+    const cover = Object.assign(document.createElement("img"), { src: poster, alt: name, title: name, width: 40, height: 60, referrerPolicy: "no-referrer", loading: "lazy", draggable: false })
+    cover.addEventListener("error", () => cover.remove(), { once: true })
+    strip.append(cover)
+  }
+  return strip
+}
+
+function previewKey(addon, catalog) {
+  return [addon.transportUrl, catalog.type, catalog.id, catalog.name || ""].join("|")
+}
+
+// What each list of an addon has first, asked of the addon at its own address when its row is opened, as the lists are only looked at then; a list that doesn't answer has no preview,
+// and one that was asked is not asked again
+async function askForPreviews(addon) {
+  if (isHere(addon.transportUrl)) return
+  const base = addon.transportUrl.replace(/\/manifest\.json(\?.*)?$/, "")
+  const todo = wholeOf(addon).filter(isOnBoardList).filter(catalog => !(previewKey(addon, catalog) in previews)).slice(0, 30)
+  for (const catalog of todo) previews[previewKey(addon, catalog)] = []
+  await Promise.all(todo.map(async catalog => {
+    try {
+      const answer = await (await fetch(base + "/catalog/" + encodeURIComponent(catalog.type) + "/" + encodeURIComponent(catalog.id) + ".json", { signal: AbortSignal.timeout(5000) })).json()
+      previews[previewKey(addon, catalog)] = (answer.metas || []).filter(meta => meta.poster).slice(0, 8).map(meta => ({ name: meta.name || "", poster: meta.poster }))
+    } catch {}
+  }))
+  if (opened.has(addon.transportUrl)) render()
 }
 
 function listArrow(addon, catalog, symbol, direction, disabled, onClick) {

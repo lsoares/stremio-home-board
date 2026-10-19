@@ -291,6 +291,50 @@ a {
   height: 1.5rem;
   font-size: 0.7rem;
 }
+.addons .lists .entry {
+  position: relative;
+}
+.addons .lists .entry[draggable="true"] {
+  cursor: grab;
+}
+.addons .lists .entry.dragging {
+  opacity: 0.4;
+}
+.addons .lists .entry.drop-before::before,
+.addons .lists .entry.drop-after::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  pointer-events: none;
+}
+.addons .lists .entry.drop-before::before {
+  top: -2px;
+}
+.addons .lists .entry.drop-after::after {
+  bottom: -2px;
+}
+.addons .lists .preview {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.3rem;
+  overflow-x: auto;
+}
+.addons .lists .preview img {
+  flex: none;
+  width: 2.5rem;
+  height: 3.75rem;
+  object-fit: cover;
+  border-radius: 0.25rem;
+  background: var(--line);
+}
+.addons .lists .preview.faded img {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
 .addons .lists .list label + .move {
   margin-left: auto;
 }

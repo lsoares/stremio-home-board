@@ -100,3 +100,10 @@ export function manifestsDiffer(current: Manifest, fresh: Manifest): boolean {
   )
   return told !== now
 }
+
+// How an addon is, by what it says now (nothing, when it doesn't answer) and what Stremio has of it: the same comparison Upgrade all makes, so what the page marks is
+// what the button does, with the lists the person hid left out of it. Plain code, as the ones above
+export function howIs(current: Manifest, fresh: Manifest | undefined, known: Catalog[]): "silent" | "outdated" | "up to date" {
+  if (!fresh) return "silent"
+  return manifestsDiffer(current, upgradedManifest(current, fresh, known)) ? "outdated" : "up to date"
+}

@@ -75,6 +75,8 @@ let saving = Promise.resolve()
 let whole = readWhole()
 // The same as it was when the page was opened, before the addons were asked: the lists this browser knew then are the ones that, if they are not in an addon, were hidden
 const seen = readWhole()
+// What each addon said when it was last asked, by address: its manifest, or null if it didn't answer
+const answered = {}
 // The addons whose lists are showing, by address, as the page is drawn again at each change and would close them
 const opened = new Set()
 // What Stremio had when the page last read or saved it, and what was done here since, as the changes and not as the result: a save puts the changes
@@ -198,6 +200,8 @@ function render() {
   const shown = visible()
   warnAboutCinemeta(shown)
   list.replaceChildren(...shown.map(item))
+  const behind = addons.filter(addon => healthOf(addon) === "outdated").length
+  document.getElementById("upgrade").textContent = behind ? "Upgrade all (" + behind + ")" : "Upgrade all"
   // The addons with no lists for the Board are not here, and it says so, so the ones that seem missing are not looked for
   document.getElementById("filtered").textContent =
     shown.length < addons.length ? "Showing " + shown.length + " of " + addons.length + " addons: only the ones with lists for the Board" : ""
@@ -228,6 +232,8 @@ function item(addon, at) {
   name.className = "name"
   const title = document.createElement("strong")
   title.textContent = addon.manifest.name
+  const flag = flagFor(addon)
+  if (flag) title.append(flag)
   const more = document.createElement("small")
   more.textContent = kindsOf(addon)
   const lists = listsOf(addon)
@@ -374,14 +380,48 @@ function placeAfterPrevious(among, all, catalog) {
 // Stremio keeps only the lists left, and what this browser kept is lost with a log out, so each addon is asked for all its lists, at its own address; one that
 // doesn't answer is left with what this browser kept, and one that is on this computer or this network is not asked, as the browser would ask them if they let a page reach it
 async function askAddonsForTheirLists() {
-  await Promise.all(server.map(async addon => {
-    if (isHere(addon.transportUrl)) return
-    try {
-      const manifest = await (await fetch(addon.transportUrl, { signal: AbortSignal.timeout(5000) })).json()
-      if (Array.isArray(manifest.catalogs)) whole[addon.transportUrl] = manifest.catalogs
-    } catch {}
+  await Promise.all(server.filter(addon => !isHere(addon.transportUrl)).map(async addon => {
+    const manifest = await askAddon(addon)
+    answered[addon.transportUrl] = manifest || null
+    if (manifest && Array.isArray(manifest.catalogs)) whole[addon.transportUrl] = manifest.catalogs
   }))
   keepWhole()
+}
+
+// What an addon says, at its own address; nothing, when it doesn't answer in time, or says something that is not a manifest
+async function askAddon(addon) {
+  try {
+    const manifest = await (await fetch(addon.transportUrl, { signal: AbortSignal.timeout(5000) })).json()
+    return manifest && manifest.id && manifest.name ? manifest : undefined
+  } catch {
+    return undefined
+  }
+}
+
+// How an addon is, if the page has asked it and Stremio lets it be changed: it says something else than Stremio has, or it didn't answer
+function healthOf(addon) {
+  const manifest = answered[addon.transportUrl]
+  if (manifest === undefined || (addon.flags && addon.flags.protected)) return "unknown"
+  return howIs(addon.manifest, manifest || undefined, seen[addon.transportUrl] || [])
+}
+
+// The ! after the name of an addon that is behind, in amber, or that didn't answer, in red, and what it means when the pointer is over it
+function flagFor(addon) {
+  const how = healthOf(addon)
+  if (how === "unknown" || how === "up to date") return null
+  const fresh = answered[addon.transportUrl]
+  const flag = document.createElement("span")
+  flag.className = "flag " + how
+  flag.textContent = "!"
+  flag.setAttribute("role", "img")
+  flag.title =
+    how === "silent"
+      ? "It didn't answer: it may be down, or not let this page read it"
+      : fresh.version !== addon.manifest.version
+        ? "Stremio has version " + addon.manifest.version + " and it now says " + fresh.version + ". Upgrade all brings it up to date"
+        : "It now says something else than what Stremio has, as its lists. Upgrade all brings it up to date"
+  flag.setAttribute("aria-label", flag.title)
+  return flag
 }
 
 // Each addon is asked for its manifest, as Stremio doesn't do it again after the install, and each one that says something else is put in the collection with it, all
@@ -391,19 +431,13 @@ async function upgradeAll() {
   const asked = await Promise.all(
     server
       .filter(addon => !(addon.flags && addon.flags.protected) && !isHere(addon.transportUrl))
-      .map(async addon => {
-        try {
-          const manifest = await (await fetch(addon.transportUrl, { signal: AbortSignal.timeout(5000) })).json()
-          return manifest && manifest.id && manifest.name ? { addon, manifest } : { addon }
-        } catch {
-          return { addon }
-        }
-      }),
+      .map(async addon => ({ addon, manifest: await askAddon(addon) })),
   )
   const changes = asked
-    .filter(({ addon, manifest }) => manifest && manifestsDiffer(addon.manifest, upgradedManifest(addon.manifest, manifest, seen[addon.transportUrl] || [])))
+    .filter(({ addon, manifest }) => howIs(addon.manifest, manifest, seen[addon.transportUrl] || []) === "outdated")
     .map(({ addon, manifest }) => ({ kind: "upgrade", address: addon.transportUrl, manifest: upgradedManifest(addon.manifest, manifest, seen[addon.transportUrl] || []), was: addon.manifest.version }))
   for (const { addon, manifest } of asked) {
+    answered[addon.transportUrl] = manifest || null
     if (manifest && Array.isArray(manifest.catalogs)) whole[addon.transportUrl] = seen[addon.transportUrl] = manifest.catalogs
   }
   keepWhole()

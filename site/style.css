@@ -9,6 +9,7 @@
   --accent-text: #fff;
   --good: #1a8a4a;
   --bad: #c62f2f;
+  --warn: #c98a12;
 }
 @media (prefers-color-scheme: dark) {
 :root {
@@ -20,6 +21,7 @@
     --accent: #8668ff;
     --good: #4ade80;
     --bad: #ff8a8a;
+    --warn: #f5c451;
   }
 }
 * {
@@ -485,4 +487,24 @@ main.manage .addons {
 }
 dialog .button {
   width: 100%;
+}
+
+.flag {
+  display: inline-grid;
+  place-items: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-left: 0.45rem;
+  border-radius: 50%;
+  background: var(--warn);
+  color: #1a1400;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+}
+
+.flag.silent {
+  background: var(--bad);
+  color: #fff;
 }

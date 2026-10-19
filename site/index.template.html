@@ -234,15 +234,22 @@ function item(addon, at) {
   name.className = "name"
   const title = document.createElement("strong")
   title.textContent = addon.manifest.name
+  // The version right after the name and before the !, which is about what is new of it, so they are seen as one
+  if (addon.manifest.version) {
+    const version = document.createElement("span")
+    version.className = "version"
+    version.textContent = addon.manifest.version
+    title.append(version)
+  }
   const flag = flagFor(addon)
   if (flag) title.append(flag)
-  // The kinds are the first words of the line that opens what the addon says of itself and its lists
-  name.append(title, listsOf(addon))
+  // The line under the name, with the kinds, opens what is under the row, across all of it: what the addon says of itself and its lists
+  name.append(title, summaryOf(addon))
   row.append(logo, name, configureLink(addon), arrow(addon, at, -1, "▲", "up"), arrow(addon, at, 1, "▼", "down"), uninstallButton(addon))
+  if (opened.has(addon.transportUrl)) row.append(bodyOf(addon))
   // A click on the row opens or closes its lists, except on what has a click of its own
   row.addEventListener("click", event => {
-    const lists = row.querySelector("details")
-    if (lists && !event.target.closest("button, a, details")) lists.open = !lists.open
+    if (!event.target.closest("button:not(.summary), a, .lists")) toggleOpen(addon)
   })
   row.addEventListener("dragstart", event => {
     event.dataTransfer.setData("text/plain", String(at))
@@ -294,51 +301,47 @@ function placeholder() {
   return logo
 }
 
-// What the addon says of itself, as Stremio has it: its text and its version, and the one it says now when it is another
-function aboutOf(addon) {
-  const about = document.createElement("div")
-  about.className = "about"
-  if (addon.manifest.description) {
-    const text = document.createElement("p")
-    text.textContent = addon.manifest.description
-    about.append(text)
-  }
-  const fresh = answered[addon.transportUrl]
-  const version = document.createElement("small")
-  version.textContent = "Version " + (addon.manifest.version || "unknown") + (fresh && fresh.version && fresh.version !== addon.manifest.version ? " (it now says " + fresh.version + ")" : "")
-  about.append(version)
-  return about
-}
-
 // One box to tick for each list on the Board, if the addon has more than one; with none ticked the addon stays installed, for what else it does, as its streams or its search, and stays here.
 // The ones ticked have arrows to change their order
-function listsOf(addon) {
+function summaryOf(addon) {
+  const button = document.createElement("button")
+  button.type = "button"
+  button.className = "summary"
+  button.setAttribute("aria-expanded", String(opened.has(addon.transportUrl)))
+  button.append(kindsOf(addon))
   const all = wholeOf(addon).filter(isOnBoardList)
-  const several = all.length > 1
-  const now = addon.manifest.catalogs || []
-  const lists = several ? arrange(all, now) : []
-  const shown = lists.filter(catalog => now.some(other => sameList(other, catalog)))
-  const box = document.createElement("details")
-  box.className = "lists"
-  const summary = document.createElement("summary")
-  summary.append(kindsOf(addon))
-  if (several) {
+  if (all.length > 1) {
+    const now = addon.manifest.catalogs || []
+    const shown = all.filter(catalog => now.some(other => sameList(other, catalog)))
     const count = document.createElement("span")
     count.textContent = shown.length === all.length ? all.length + " lists" : shown.length + " of " + all.length + " lists"
-    summary.append(" ", count)
+    button.append(" ", count)
   }
-  box.append(summary, aboutOf(addon))
-  box.open = opened.has(addon.transportUrl)
-  // One open at a time: opening one closes the other. The page is drawn again at each change, and what is told by one that is gone is not heard, or it would close the new one
-  box.dataset.address = addon.transportUrl
-  box.addEventListener("toggle", () => {
-    if (!box.isConnected) return
-    if (box.open) {
-      opened.clear()
-      opened.add(addon.transportUrl)
-      for (const other of list.querySelectorAll("details")) if (other.dataset.address !== addon.transportUrl) other.open = false
-    } else opened.delete(addon.transportUrl)
-  })
+  return button
+}
+
+// One open at a time: opening one closes the other
+function toggleOpen(addon) {
+  const was = opened.has(addon.transportUrl)
+  opened.clear()
+  if (!was) opened.add(addon.transportUrl)
+  render()
+}
+
+// What is under the row, across all of it: what the addon says of itself, and its lists
+function bodyOf(addon) {
+  const all = wholeOf(addon).filter(isOnBoardList)
+  const now = addon.manifest.catalogs || []
+  const lists = all.length > 1 ? arrange(all, now) : []
+  const shown = lists.filter(catalog => now.some(other => sameList(other, catalog)))
+  const box = document.createElement("div")
+  box.className = "lists"
+  if (addon.manifest.description) {
+    const about = document.createElement("p")
+    about.className = "about"
+    about.textContent = addon.manifest.description
+    box.append(about)
+  }
   lists.forEach(catalog => {
     const on = shown.includes(catalog)
     const row = document.createElement("div")

@@ -10,6 +10,7 @@
   --good: #1a8a4a;
   --bad: #c62f2f;
   --warn: #c98a12;
+  --alert: #d92b2b;
 }
 @media (prefers-color-scheme: dark) {
 :root {
@@ -22,6 +23,7 @@
     --good: #4ade80;
     --bad: #ff8a8a;
     --warn: #f5c451;
+    --alert: #f0443f;
   }
 }
 * {
@@ -481,28 +483,13 @@ dialog .button {
   cursor: help;
 }
 
-.flag.silent {
-  background: var(--bad);
-  color: #fff;
-}
-
-.addons .summary {
-  display: block;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.85rem;
-  text-align: left;
-  cursor: pointer;
-}
-
-.addons .summary span {
-  margin-left: 0.25rem;
+.addons .count {
+  display: inline-block;
+  margin-top: 0.1rem;
   padding: 0 0.5rem;
   border: 1px solid var(--line);
   border-radius: 999px;
+  color: var(--muted);
   font-size: 0.8rem;
   white-space: nowrap;
 }
@@ -524,4 +511,15 @@ dialog .button {
   font-size: 0.85rem;
   line-height: 1.4;
   overflow-wrap: anywhere;
+}
+
+.flag.silent,
+.flag.warning {
+  background: var(--alert);
+  color: #fff;
+}
+
+.addons li.alarm {
+  background: color-mix(in srgb, var(--alert) 14%, var(--bg));
+  border-color: color-mix(in srgb, var(--alert) 55%, var(--line));
 }

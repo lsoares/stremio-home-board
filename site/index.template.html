@@ -242,13 +242,23 @@ function item(addon, at) {
   // Said on the row of Cinemeta, as the other marks are, and not below the list
   const warning = addon.manifest.id === "com.linvo.cinemeta" ? cinemetaWarning(visible()) : ""
   if (warning) title.append(flagOf("warning", warning))
-  // The line under the name, with the kinds, opens what is under the row, across all of it: what the addon says of itself and its lists
-  name.append(title, summaryOf(addon))
+  // A red mark colours the row too: it is what wants looking at
+  if (title.querySelector(".flag.silent, .flag.warning")) row.classList.add("alarm")
+  // The name, which a key opens too, is what opens what is under the row, across all of it: what the addon is of, what it says of itself and its lists
+  title.tabIndex = 0
+  title.setAttribute("role", "button")
+  title.setAttribute("aria-expanded", String(opened.has(addon.transportUrl)))
+  title.addEventListener("keydown", event => {
+    if (event.key !== "Enter" && event.key !== " ") return
+    event.preventDefault()
+    toggleOpen(addon)
+  })
+  name.append(title, countOf(addon))
   row.append(logo, name, configureLink(addon), arrow(addon, at, -1, "▲", "up"), arrow(addon, at, 1, "▼", "down"), uninstallButton(addon))
   if (opened.has(addon.transportUrl)) row.append(bodyOf(addon))
   // A click on the row opens or closes its lists, except on what has a click of its own
   row.addEventListener("click", event => {
-    if (!event.target.closest("button:not(.summary), a, .lists")) toggleOpen(addon)
+    if (!event.target.closest("button, a, .lists")) toggleOpen(addon)
   })
   row.addEventListener("dragstart", event => {
     event.dataTransfer.setData("text/plain", String(at))
@@ -300,23 +310,16 @@ function placeholder() {
   return logo
 }
 
-// One box to tick for each list on the Board, if the addon has more than one; with none ticked the addon stays installed, for what else it does, as its streams or its search, and stays here.
-// The ones ticked have arrows to change their order
-function summaryOf(addon) {
-  const button = document.createElement("button")
-  button.type = "button"
-  button.className = "summary"
-  button.setAttribute("aria-expanded", String(opened.has(addon.transportUrl)))
-  button.append(kindsOf(addon))
+// Under the name, how many lists the addon has on the Board, when it has more than one; what it is of, and the rest, is under the row once it is open
+function countOf(addon) {
   const all = wholeOf(addon).filter(isOnBoardList)
-  if (all.length > 1) {
-    const now = addon.manifest.catalogs || []
-    const shown = all.filter(catalog => now.some(other => sameList(other, catalog)))
-    const count = document.createElement("span")
-    count.textContent = shown.length === all.length ? all.length + " lists" : shown.length + " of " + all.length + " lists"
-    button.append(" ", count)
-  }
-  return button
+  if (all.length < 2) return document.createDocumentFragment()
+  const now = addon.manifest.catalogs || []
+  const shown = all.filter(catalog => now.some(other => sameList(other, catalog)))
+  const count = document.createElement("span")
+  count.className = "count"
+  count.textContent = shown.length === all.length ? all.length + " lists" : shown.length + " of " + all.length + " lists"
+  return count
 }
 
 // One open at a time: opening one closes the other
@@ -327,7 +330,8 @@ function toggleOpen(addon) {
   render()
 }
 
-// What is under the row, across all of it: what the addon says of itself, and its lists
+// What is under the row, across all of it: what the addon says of itself, and its lists, to tick and to put in order, if it has more than one. With none ticked an addon stays
+// installed, for what else it does, as its streams or its search, and stays here
 function bodyOf(addon) {
   const all = wholeOf(addon).filter(isOnBoardList)
   const now = addon.manifest.catalogs || []
@@ -335,6 +339,10 @@ function bodyOf(addon) {
   const shown = lists.filter(catalog => now.some(other => sameList(other, catalog)))
   const box = document.createElement("div")
   box.className = "lists"
+  const kinds = document.createElement("p")
+  kinds.className = "about"
+  kinds.textContent = kindsOf(addon)
+  box.append(kinds)
   if (addon.manifest.description) {
     const about = document.createElement("p")
     about.className = "about"

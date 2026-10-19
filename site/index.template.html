@@ -346,16 +346,15 @@ function bodyOf(addon, marks) {
     problem.textContent = mark.title
     box.append(problem)
   }
-  const kinds = document.createElement("p")
-  kinds.className = "about"
+  // What the addon is of, with a style of its own, and what it says of itself, on the same line
+  const about = document.createElement("p")
+  about.className = "about"
+  const kinds = document.createElement("span")
+  kinds.className = "kinds"
   kinds.textContent = kindsOf(addon)
-  box.append(kinds)
-  if (addon.manifest.description) {
-    const about = document.createElement("p")
-    about.className = "about"
-    about.textContent = addon.manifest.description
-    box.append(about)
-  }
+  about.append(kinds)
+  if (addon.manifest.description) about.append(addon.manifest.description)
+  box.append(about)
   lists.forEach(catalog => {
     const on = shown.includes(catalog)
     const row = document.createElement("div")

@@ -536,3 +536,14 @@ dialog .button {
 .addons .lists .problem.warning {
   color: var(--alert);
 }
+
+.addons .lists .kinds {
+  display: inline-block;
+  margin-right: 0.5rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 600;
+}

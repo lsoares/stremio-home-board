@@ -255,7 +255,7 @@ function item(addon, at) {
   })
   name.append(title, countOf(addon))
   row.append(logo, name, configureLink(addon), arrow(addon, at, -1, "▲", "up"), arrow(addon, at, 1, "▼", "down"), uninstallButton(addon))
-  if (opened.has(addon.transportUrl)) row.append(bodyOf(addon))
+  if (opened.has(addon.transportUrl)) row.append(bodyOf(addon, [...title.querySelectorAll(".flag")]))
   // A click on the row opens or closes its lists, except on what has a click of its own
   row.addEventListener("click", event => {
     if (!event.target.closest("button, a, .lists")) toggleOpen(addon)
@@ -332,13 +332,20 @@ function toggleOpen(addon) {
 
 // What is under the row, across all of it: what the addon says of itself, and its lists, to tick and to put in order, if it has more than one. With none ticked an addon stays
 // installed, for what else it does, as its streams or its search, and stays here
-function bodyOf(addon) {
+function bodyOf(addon, marks) {
   const all = wholeOf(addon).filter(isOnBoardList)
   const now = addon.manifest.catalogs || []
   const lists = all.length > 1 ? arrange(all, now) : []
   const shown = lists.filter(catalog => now.some(other => sameList(other, catalog)))
   const box = document.createElement("div")
   box.className = "lists"
+  // What each ! says, first, in its colour
+  for (const mark of marks) {
+    const problem = document.createElement("p")
+    problem.className = "problem " + mark.classList[1]
+    problem.textContent = mark.title
+    box.append(problem)
+  }
   const kinds = document.createElement("p")
   kinds.className = "about"
   kinds.textContent = kindsOf(addon)

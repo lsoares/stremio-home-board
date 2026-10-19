@@ -523,3 +523,16 @@ dialog .button {
   background: color-mix(in srgb, var(--alert) 14%, var(--bg));
   border-color: color-mix(in srgb, var(--alert) 55%, var(--line));
 }
+
+.addons .lists .problem {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--warn);
+}
+
+.addons .lists .problem.silent,
+.addons .lists .problem.warning {
+  color: var(--alert);
+}

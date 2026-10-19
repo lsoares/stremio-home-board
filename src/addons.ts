@@ -101,9 +101,35 @@ export function manifestsDiffer(current: Manifest, fresh: Manifest): boolean {
   return told !== now
 }
 
-// How an addon is, by what it says now (nothing, when it doesn't answer) and what Stremio has of it: the same comparison Upgrade all makes, so what the page marks is
-// what the button does, with the lists the person hid left out of it. Plain code, as the ones above
+// What an addon says now that matters to Stremio and Stremio doesn't have: a list that is new since the lists the person last knew (known), a list of Stremio's that the addon
+// no longer has, and what it answers to (catalog, meta, stream...). Its version, its text and its picture are not here: nothing changes in Stremio with them, and the person's
+// choice of lists, hidden or put in another order, is what this page is for, so it is never a difference. Plain code, as the ones above
+export function whatIsNew(current: Manifest, fresh: Manifest, known: Catalog[]): string[] {
+  const fromCurrent = current.catalogs || []
+  const fromFresh = fresh.catalogs || []
+  const [now, then] = [fromCurrent, fromFresh].map(lists => lists.map(list => [list.type, list.id, list.name || ""].join("|")))
+  const before = known.map(list => [list.type, list.id, list.name || ""].join("|"))
+  const added = fromFresh.filter((_list, at) => !now.includes(then[at]) && !before.includes(then[at])).map(list => list.name || list.id)
+  const gone = fromCurrent.filter((_list, at) => !then.includes(now[at])).map(list => list.name || list.id)
+  const [was, is] = [current, fresh].map(manifest =>
+    ((manifest.resources as (string | { name: string })[] | undefined) || []).map(resource => (typeof resource === "string" ? resource : resource.name)),
+  )
+  const gained = is.filter(name => !was.includes(name))
+  const lost = was.filter(name => !is.includes(name))
+  const news = [
+    ...(added.length ? [`new ${added.length === 1 ? "list" : "lists"}: ${added.join(", ")}`] : []),
+    ...(gone.length ? [`${gone.length === 1 ? "list" : "lists"} no longer there: ${gone.join(", ")}`] : []),
+    ...(gained.length ? [`now also answers to ${gained.join(", ")}`] : []),
+    ...(lost.length ? [`no longer answers to ${lost.join(", ")}`] : []),
+  ]
+  const [kept, said] = [current, fresh].map(manifest => ({ resources: manifest.resources, types: manifest.types, idPrefixes: manifest.idPrefixes }))
+  if (!gained.length && !lost.length && manifestsDiffer(kept, said)) news.push("answers for other types or ids")
+  return news
+}
+
+// How an addon is, by what it says now (nothing, when it doesn't answer) and what Stremio has of it: behind only when something that matters to Stremio is new, and nothing
+// of what the person chose. Plain code, as the ones above
 export function howIs(current: Manifest, fresh: Manifest | undefined, known: Catalog[]): "silent" | "outdated" | "up to date" {
   if (!fresh) return "silent"
-  return manifestsDiffer(current, upgradedManifest(current, fresh, known)) ? "outdated" : "up to date"
+  return whatIsNew(current, fresh, known).length ? "outdated" : "up to date"
 }

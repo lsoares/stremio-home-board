@@ -508,3 +508,20 @@ dialog .button {
   background: var(--bad);
   color: #fff;
 }
+
+.addons .about {
+  margin-top: 0.3rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.addons .about p {
+  margin: 0 0 0.3rem;
+  overflow-wrap: anywhere;
+}
+
+.addons .about small {
+  display: block;
+  white-space: normal;
+}

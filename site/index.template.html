@@ -37,7 +37,6 @@ try {
 </ol>
 <button class="button" id="connect" type="button">Connect to Stremio</button>
 <ol class="addons" id="addons" hidden></ol>
-<p id="warning" role="status"></p>
 <div class="footer">
 <div>
 <p id="filtered"></p>
@@ -200,7 +199,6 @@ function visible() {
 
 function render() {
   const shown = visible()
-  warnAboutCinemeta(shown)
   list.replaceChildren(...shown.map(item))
   const behind = addons.filter(addon => healthOf(addon) === "outdated").length
   document.getElementById("upgrade").textContent = behind ? "Upgrade all (" + behind + ")" : "Upgrade all"
@@ -211,13 +209,11 @@ function render() {
 
 // Stremio takes a title's page from the first addon that has it, and the addons that find streams only know the ids of IMDb, which Cinemeta has: with an addon that has
 // titles with ids of its own above Cinemeta, they have nothing to be asked for. It is not stopped, it is said
-function warnAboutCinemeta(shown) {
+function cinemetaWarning(shown) {
   const right = withCinemetaFirst(shown)
   const at = right.findIndex(addon => addon.manifest.id === "com.linvo.cinemeta")
   const above = shown.some((addon, place) => addon !== right[place]) ? right[at + 1] : undefined
-  document.getElementById("warning").textContent = above
-    ? "⚠️ Cinemeta is below " + above.manifest.name + ": stream addons may find nothing."
-    : ""
+  return above ? "Cinemeta is below " + above.manifest.name + ": stream addons may find nothing" : ""
 }
 
 function item(addon, at) {
@@ -243,6 +239,9 @@ function item(addon, at) {
   }
   const flag = flagFor(addon)
   if (flag) title.append(flag)
+  // Said on the row of Cinemeta, as the other marks are, and not below the list
+  const warning = addon.manifest.id === "com.linvo.cinemeta" ? cinemetaWarning(visible()) : ""
+  if (warning) title.append(flagOf("warning", warning))
   // The line under the name, with the kinds, opens what is under the row, across all of it: what the addon says of itself and its lists
   name.append(title, summaryOf(addon))
   row.append(logo, name, configureLink(addon), arrow(addon, at, -1, "▲", "up"), arrow(addon, at, 1, "▼", "down"), uninstallButton(addon))
@@ -440,15 +439,22 @@ function flagFor(addon) {
   const how = healthOf(addon)
   if (how === "unknown" || how === "up to date") return null
   const fresh = answered[addon.transportUrl]
-  const flag = document.createElement("span")
-  flag.className = "flag " + how
-  flag.textContent = "!"
-  flag.setAttribute("role", "img")
-  flag.title =
+  return flagOf(
+    how,
     how === "silent"
       ? "It didn't answer: it may be down, or not let this page read it"
-      : "Stremio's copy is behind: " + whatIsNew(addon.manifest, fresh, knownOf(addon, fresh)).join("; ") + ". Upgrade brings it up to date"
-  flag.setAttribute("aria-label", flag.title)
+      : "Stremio's copy is behind: " + whatIsNew(addon.manifest, fresh, knownOf(addon, fresh)).join("; ") + ". Upgrade brings it up to date",
+  )
+}
+
+// The ! after a name, with what it says when the pointer is over it
+function flagOf(kind, text) {
+  const flag = document.createElement("span")
+  flag.className = "flag " + kind
+  flag.textContent = "!"
+  flag.title = text
+  flag.setAttribute("role", "img")
+  flag.setAttribute("aria-label", text)
   return flag
 }
 

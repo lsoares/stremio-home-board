@@ -171,13 +171,6 @@ a {
 #status {
   margin-top: 1rem;
 }
-#warning {
-  margin: 1rem 0 0;
-  color: var(--bad);
-}
-#warning:empty {
-  display: none;
-}
 #status.good {
   color: var(--good);
   font-weight: 600;

@@ -637,7 +637,10 @@ async function upgradeAll() {
   keepSeen()
   const silent = asked.filter(({ manifest }) => !manifest).map(({ addon }) => addon.manifest.name)
   const left = silent.length ? " " + silent.length + " didn't answer: " + silent.join(", ") + "." : ""
-  if (!changes.length) return say("Your addons are all up to date." + left)
+  if (!changes.length) {
+    render()
+    return say("Your addons are all up to date." + left)
+  }
   pending.push(...changes)
   addons = apply(pending, server)
   render()

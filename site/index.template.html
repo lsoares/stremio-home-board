@@ -61,6 +61,35 @@ try {
 <button class="button" value="restore">Restore</button>
 </form>
 </dialog>
+<details class="contact">
+<summary>Send feedback</summary>
+<form id="contact" action="https://api.web3forms.com/submit" method="POST">
+<input type="hidden" name="access_key" value="82dcb4b2-cac9-40d1-9358-82bc8188d6f5">
+<input type="hidden" name="subject" value="Home Board for Stremio">
+<input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true">
+<textarea name="message" rows="4" required aria-label="Message" placeholder="Message"></textarea>
+<input type="email" name="email" autocomplete="email" aria-label="Your email, if you want an answer (optional)" placeholder="Your email, if you want an answer (optional)">
+<button class="button" type="submit">Send</button>
+<p id="contact-status" role="status" aria-live="polite"></p>
+</form>
+</details>
+<script>
+  // The message goes to Web3Forms, which has the address it's sent to; with no script, the form is sent as it is
+  const contact = document.getElementById("contact")
+  contact.addEventListener("submit", async event => {
+    event.preventDefault()
+    const status = document.getElementById("contact-status")
+    status.textContent = "Sending…"
+    try {
+      const response = await fetch(contact.action, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(Object.fromEntries(new FormData(contact))) })
+      if (!(await response.json()).success) throw new Error("not sent")
+      contact.reset()
+      status.textContent = "Message sent. Thank you!"
+    } catch {
+      status.textContent = "Couldn't send it. Try again later."
+    }
+  })
+</script>
 </main>
 <aside class="suggested" id="suggested" hidden></aside>
 <script type="module">

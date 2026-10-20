@@ -131,6 +131,41 @@ a {
 .coffee a:hover {
   color: var(--accent);
 }
+.contact {
+  margin: 1.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+.contact summary {
+  cursor: pointer;
+}
+.contact form {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+  text-align: left;
+}
+.contact textarea,
+.contact input[type="email"] {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+}
+.contact [name="botcheck"] {
+  display: none;
+}
+.contact .button {
+  cursor: pointer;
+}
+#contact-status {
+  min-height: 1.2em;
+  margin: 0;
+}
 .coffee[hidden] {
   display: none;
 }

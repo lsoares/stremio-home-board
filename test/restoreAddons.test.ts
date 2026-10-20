@@ -15,6 +15,13 @@ it("has, at the top of the page, buttons to back up and to restore the addons, w
   expect(page).toMatch(/<button[^>]*id="restore"[^>]*title="Put your addons back from a file[^"]*"/)
 })
 
+it("has a form to send a message to the author, and not his address", () => {
+  const page = readFileSync("site/index.template.html", "utf8")
+
+  expect(page).toContain('action="https://api.web3forms.com/submit"')
+  expect(page).not.toContain("mailto:")
+})
+
 it("puts back an addon the backup has and is not installed now, after the one that comes before it in the backup", () => {
   const collection = restoredCollection([installed("a"), installed("c")], [installed("a"), installed("b"), installed("c")])
 

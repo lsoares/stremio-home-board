@@ -508,6 +508,47 @@ main.manage .addons {
 #connect {
   margin-top: 1.25rem;
 }
+.suggested {
+  max-width: 44rem;
+  margin: 1.25rem auto 0;
+  padding: 0 1.25rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.suggested[hidden] {
+  display: none;
+}
+.suggested h2 {
+  margin: 0 0 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.suggested ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem 1.1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.suggested a {
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--line);
+}
+.suggested a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.suggested li span {
+  opacity: 0.7;
+}
 dialog .button {
   width: 100%;
 }

@@ -62,6 +62,7 @@ try {
 </form>
 </dialog>
 </main>
+<aside class="suggested" id="suggested" hidden></aside>
 <script type="module">
 const stremioApi = "https://api.strem.io/api"
 const firstId = new URLSearchParams(location.search).get("first")
@@ -209,6 +210,28 @@ function render() {
   // The addons with no lists for the Board are not here, and it says so, so the ones that seem missing are not looked for
   document.getElementById("filtered").textContent =
     shown.length < addons.length ? "Showing " + shown.length + " of " + addons.length + " addons: only the ones with lists for the Board" : ""
+  suggest()
+}
+
+// The addons of the author of this page, under it and quiet, except the ones installed already, which are known by their address starting with the one of the addon's page
+function suggest() {
+  const mine = [
+    ["Fireplace", "cozy live streams", "https://lsoares.github.io/fireplace/"],
+    ["Watchlane", "your YouTube channels", "https://stremio-youtube.lsoares.workers.dev/"],
+    ["Simkl Watch Next", "what to watch next", "https://simkl-watch-next.simkl-watch-next.workers.dev/"],
+    ["SkylineWebcams", "live webcams", "https://skyline-webcams-stremio.lsoares.workers.dev/"],
+  ].filter(([, , page]) => !addons.some(addon => addon.transportUrl.startsWith(page)))
+  const box = document.getElementById("suggested")
+  box.hidden = !mine.length
+  const title = Object.assign(document.createElement("h2"), { textContent: "Addons I made" })
+  const items = document.createElement("ul")
+  for (const [name, what, page] of mine) {
+    const link = Object.assign(document.createElement("a"), { href: page, target: "_blank", rel: "noopener", textContent: name })
+    const item = document.createElement("li")
+    item.append(link, " ", Object.assign(document.createElement("span"), { textContent: "· " + what }))
+    items.append(item)
+  }
+  box.replaceChildren(title, items)
 }
 
 // Stremio takes a title's page from the first addon that has it, and the addons that find streams only know the ids of IMDb, which Cinemeta has: with an addon that has

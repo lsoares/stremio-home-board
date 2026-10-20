@@ -185,15 +185,6 @@ a {
 .footer .coffee {
   margin: 1rem 0 0 auto;
 }
-#filtered {
-  margin: 1rem 0 0;
-  color: var(--muted);
-  font-size: 0.875rem;
-}
-#filtered:empty,
-#filtered:has(+ #status:not(:empty)) {
-  display: none;
-}
 .kofi {
   width: 1.2em;
   height: 1.2em;
@@ -505,6 +496,17 @@ main.manage {
   border-color: var(--accent);
 }
 .toolbar .tool[hidden] {
+  display: none;
+}
+.toolbar .tool-check {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.toolbar .tool-check[hidden] {
   display: none;
 }
 .toolbar .link-button {

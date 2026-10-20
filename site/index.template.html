@@ -257,7 +257,7 @@ function item(addon, at) {
     event.preventDefault()
     toggleOpen(addon)
   })
-  name.append(title, countOf(addon))
+  name.append(title, subOf(addon))
   row.append(logo, name, configureLink(addon), arrow(addon, at, -1, "▲", "up"), arrow(addon, at, 1, "▼", "down"), uninstallButton(addon))
   if (opened.has(addon.transportUrl)) row.append(bodyOf(addon, [...title.querySelectorAll(".flag")]))
   // A click on the row opens or closes its lists, except on what has a click of its own
@@ -314,16 +314,26 @@ function placeholder() {
   return logo
 }
 
-// Under the name, how many lists the addon has on the Board, when it has more than one; what it is of, and the rest, is under the row once it is open
-function countOf(addon) {
+// Under the name, in small: how many lists the addon has on the Board, when it has more than one, and, once it is open, what it is of; the rest is under the row
+function subOf(addon) {
+  const sub = document.createElement("span")
+  sub.className = "sub"
   const all = wholeOf(addon).filter(isOnBoardList)
-  if (all.length < 2) return document.createDocumentFragment()
-  const now = addon.manifest.catalogs || []
-  const shown = all.filter(catalog => now.some(other => sameList(other, catalog)))
-  const count = document.createElement("span")
-  count.className = "count"
-  count.textContent = shown.length === all.length ? all.length + " lists" : shown.length + " of " + all.length + " lists"
-  return count
+  if (all.length > 1) {
+    const now = addon.manifest.catalogs || []
+    const shown = all.filter(catalog => now.some(other => sameList(other, catalog)))
+    const count = document.createElement("span")
+    count.className = "count"
+    count.textContent = shown.length === all.length ? all.length + " lists" : shown.length + " of " + all.length + " lists"
+    sub.append(count)
+  }
+  if (opened.has(addon.transportUrl)) {
+    const kinds = document.createElement("span")
+    kinds.className = "kinds"
+    kinds.textContent = kindsOf(addon)
+    sub.append(kinds)
+  }
+  return sub.childElementCount ? sub : document.createDocumentFragment()
 }
 
 // One open at a time: opening one closes the other
@@ -351,15 +361,16 @@ function bodyOf(addon, marks) {
     problem.textContent = mark.title
     box.append(problem)
   }
-  // What the addon is of, with a style of its own, and what it says of itself, on the same line
-  const about = document.createElement("p")
-  about.className = "about"
-  const kinds = document.createElement("span")
-  kinds.className = "kinds"
-  kinds.textContent = kindsOf(addon)
-  about.append(kinds)
-  if (addon.manifest.description) about.append(addon.manifest.description)
-  box.append(about)
+  // What the addon says of itself
+  if (addon.manifest.description) {
+    const about = document.createElement("p")
+    about.className = "about"
+    about.textContent = addon.manifest.description
+    box.append(about)
+  }
+  // An addon with one list has no line for it, to tick or to order, but its posters are shown all the same
+  const only = all.length === 1 ? previews[previewKey(addon, all[0])] || [] : []
+  if (only.length) box.append(previewOf(only, true))
   lists.forEach(catalog => {
     const on = shown.includes(catalog)
     const row = document.createElement("div")

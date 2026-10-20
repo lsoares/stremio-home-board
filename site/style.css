@@ -527,14 +527,15 @@ dialog .button {
   cursor: help;
 }
 
-.addons .count {
-  display: inline-block;
+.addons .sub {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-top: 0.1rem;
-  padding: 0 0.5rem;
-  border: 1px solid var(--line);
-  border-radius: 999px;
+}
+.addons .count {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 
@@ -581,13 +582,12 @@ dialog .button {
   color: var(--alert);
 }
 
-.addons .lists .kinds {
+.addons .kinds {
   display: inline-block;
-  margin-right: 0.5rem;
-  padding: 0 0.5rem;
+  padding: 0 0.4rem;
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent) 22%, transparent);
   color: var(--text);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
 }

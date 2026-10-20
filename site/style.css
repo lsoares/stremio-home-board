@@ -119,32 +119,60 @@ a {
 .link-button[hidden] {
   display: none;
 }
-.coffee {
-  margin: 1.25rem 0 0;
+.foot-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.3rem 1.1rem;
+  width: 100%;
+  max-width: 44rem;
+  padding: 0 0.5rem;
+  font-size: 0.85rem;
 }
-.coffee a {
+.foot-links a,
+.foot-links button {
+  padding: 0;
+  border: 0;
+  background: none;
   color: var(--muted);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font: inherit;
   text-decoration: none;
+  cursor: pointer;
 }
-.coffee a:hover {
+.foot-links a:hover,
+.foot-links button:hover {
+  color: var(--accent);
+}
+.foot-links [hidden] {
+  display: none;
+}
+#contact-dialog {
+  width: min(26rem, calc(100vw - 2rem));
+  padding: 1rem 1.5rem 1.25rem;
+}
+.dialog-x {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.5rem;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.dialog-x:hover,
+.dialog-x:focus-visible {
   color: var(--accent);
 }
 .contact {
-  margin: 1.25rem 0 0;
-  color: var(--muted);
-  font-size: 0.875rem;
-  text-align: center;
-}
-.contact summary {
-  cursor: pointer;
-}
-.contact form {
   display: grid;
   gap: 0.6rem;
-  margin-top: 0.8rem;
-  text-align: left;
+  padding: 0;
 }
 .contact textarea,
 .contact input[type="email"] {
@@ -163,11 +191,13 @@ a {
   cursor: pointer;
 }
 #contact-status {
-  min-height: 1.2em;
   margin: 0;
 }
-.coffee[hidden] {
+#contact-status:empty {
   display: none;
+}
+body:has(dialog[open]) {
+  overflow: hidden;
 }
 .footer {
   display: flex;
@@ -182,14 +212,12 @@ a {
 .footer #status:empty {
   display: none;
 }
-.footer .coffee {
-  margin: 1rem 0 0 auto;
-}
 .kofi {
-  width: 1.2em;
-  height: 1.2em;
+  width: 1.1em;
+  height: 1.1em;
+  margin-right: 0.35rem;
   fill: #ff5e5b;
-  vertical-align: -0.25em;
+  vertical-align: -0.2em;
 }
 .note {
   margin: 1.5rem 0 0;
@@ -423,9 +451,6 @@ a.move {
 .move:disabled {
   opacity: 0.25;
   cursor: default;
-}
-.coffee[hidden] {
-  display: none;
 }
 .remove:hover:not(:disabled) {
   color: var(--bad);

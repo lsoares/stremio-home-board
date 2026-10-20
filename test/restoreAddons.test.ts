@@ -22,6 +22,25 @@ it("has a form to send a message to the author, and not his address", () => {
   expect(page).not.toContain("mailto:")
 })
 
+it("opens the form in a dialog from a link under the box, not inside the box", () => {
+  const page = readFileSync("site/index.template.html", "utf8")
+
+  expect(page).toMatch(/<\/main>\s*<nav class="foot-links"[^>]*>\s*<button[^>]*class="open-contact"[^>]*>Send feedback<\/button>/)
+  expect(page).toMatch(/<dialog id="contact-dialog"[^>]*>[\s\S]*<form[^>]*id="contact"[\s\S]*<\/dialog>/)
+  expect(page.slice(0, page.indexOf("</main>"))).not.toContain('id="contact"')
+})
+
+it("has scripts that compile, each in its own scope", () => {
+  const page = readFileSync("site/index.template.html", "utf8")
+  const scripts = [...page.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)]
+
+  expect(scripts.length).toBeGreaterThan(1)
+  for (const [, attributes, code] of scripts) {
+    if (attributes.includes("module")) new Function(`return async () => {${code.replace(/^\s*import .*$/gm, "")}}`)
+    else new Function(code)
+  }
+})
+
 it("puts back an addon the backup has and is not installed now, after the one that comes before it in the backup", () => {
   const collection = restoredCollection([installed("a"), installed("c")], [installed("a"), installed("b"), installed("c")])
 

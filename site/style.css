@@ -426,6 +426,9 @@ body:has(dialog[open]) {
   opacity: 0.35;
   filter: grayscale(1);
 }
+.addons .lists .list label {
+  color: var(--text);
+}
 .addons .lists .list label + .move {
   margin-left: auto;
 }
@@ -704,9 +707,9 @@ dialog .button {
 }
 
 .addons .lists .about {
-  margin: 0 0 0.4rem;
+  margin: 0 0 0.75rem;
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }

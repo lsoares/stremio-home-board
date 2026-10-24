@@ -400,14 +400,12 @@ function placeholder() {
 function subOf(addon) {
   const sub = document.createElement("span")
   sub.className = "sub"
-  // Open, first the types the addon is of, one tag each as Stremio's own page has them
-  if (opened.has(addon.transportUrl)) {
-    for (const kind of addon.manifest.types || []) {
-      const tag = document.createElement("span")
-      tag.className = "kinds"
-      tag.textContent = kind
-      sub.append(tag)
-    }
+  // First the types the addon is of, one tag each as Stremio's own page has them, closed or open
+  for (const kind of addon.manifest.types || []) {
+    const tag = document.createElement("span")
+    tag.className = "kinds"
+    tag.textContent = kind
+    sub.append(tag)
   }
   // The count is for the closed row: open, the lists are there to be seen
   const all = wholeOf(addon).filter(isOnBoardList)

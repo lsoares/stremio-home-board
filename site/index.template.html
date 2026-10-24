@@ -38,6 +38,7 @@ try {
 </ol>
 <button class="button" id="connect" type="button">Connect to Stremio</button>
 <ol class="addons" id="addons" hidden></ol>
+<a href="https://stremio-addons.net" class="more" id="more" target="_blank" rel="noopener" hidden>+ Find more addons</a>
 <div class="footer">
 <div>
 <p id="status" role="status" aria-live="polite"></p>
@@ -63,7 +64,6 @@ try {
 </main>
 <nav class="foot-links" aria-label="More">
 <button type="button" class="open-contact">Send feedback</button>
-<a href="https://stremio-addons.net" target="_blank" rel="noopener">Find more addons</a>
 <a id="coffee" href="https://ko-fi.com/lmiguel" target="_blank" rel="noopener"><svg class="kofi" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support me on Ko-fi</a>
 </nav>
 <dialog id="contact-dialog" aria-labelledby="contact-title">
@@ -210,7 +210,7 @@ async function load(key) {
     document.documentElement.classList.remove("returning")
     document.getElementById("connect").hidden = true
     document.getElementById("note").hidden = true
-    for (const tool of ["upgrade", "backup", "restore", "catalog-label", "disconnect"]) document.getElementById(tool).hidden = false
+    for (const tool of ["upgrade", "backup", "restore", "catalog-label", "disconnect", "more"]) document.getElementById(tool).hidden = false
     list.hidden = false
     render()
     say("")
@@ -227,7 +227,7 @@ async function load(key) {
     document.documentElement.classList.remove("returning")
     document.getElementById("connect").hidden = false
     document.getElementById("note").hidden = false
-    for (const tool of ["upgrade", "backup", "restore", "catalog-label", "disconnect"]) document.getElementById(tool).hidden = true
+    for (const tool of ["upgrade", "backup", "restore", "catalog-label", "disconnect", "more"]) document.getElementById(tool).hidden = true
     say("Stremio said: " + error.message + ". Press Connect to say yes again.", "bad")
   }
 }
@@ -395,6 +395,16 @@ function placeholder() {
 function subOf(addon) {
   const sub = document.createElement("span")
   sub.className = "sub"
+  // Open, first the types the addon is of, one tag each as Stremio's own page has them, and a tag when none of its lists is on the Board
+  if (opened.has(addon.transportUrl)) {
+    const onBoard = (addon.manifest.catalogs || []).some(isOnBoardList)
+    for (const kind of [...(addon.manifest.types || []), ...(onBoard ? [] : ["not on the Board"])]) {
+      const tag = document.createElement("span")
+      tag.className = "kinds"
+      tag.textContent = kind
+      sub.append(tag)
+    }
+  }
   const all = wholeOf(addon).filter(isOnBoardList)
   if (all.length > 1) {
     const now = addon.manifest.catalogs || []
@@ -403,12 +413,6 @@ function subOf(addon) {
     count.className = "count"
     count.textContent = shown.length === all.length ? all.length + " lists" : shown.length + " of " + all.length + " lists"
     sub.append(count)
-  }
-  if (opened.has(addon.transportUrl)) {
-    const kinds = document.createElement("span")
-    kinds.className = "kinds"
-    kinds.textContent = kindsOf(addon)
-    sub.append(kinds)
   }
   return sub.childElementCount ? sub : document.createDocumentFragment()
 }
@@ -935,13 +939,6 @@ function save(done = "Saved ✓") {
       say("It couldn't be saved: " + error.message, "bad")
     }
   })
-}
-
-// What its lists are of, as movies, series
-function kindsOf(addon) {
-  const names = { movie: "movies", series: "series" }
-  const kinds = [...new Set((addon.manifest.catalogs || []).filter(isOnBoardList).map(catalog => names[catalog.type] || catalog.type))]
-  return kinds.length ? kinds.join(", ") : "not on the Board"
 }
 
 // Here are the addons with lists for the Board, hidden or not, and not those with only a search, or with no list

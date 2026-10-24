@@ -286,6 +286,24 @@ body:has(dialog[open]) {
     animation: none;
   }
 }
+.more {
+  display: block;
+  margin-top: 0.5rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+  text-decoration: none;
+}
+.more:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.more[hidden] {
+  display: none;
+}
 .addons li {
   display: flex;
   flex-wrap: wrap;

@@ -1,4 +1,4 @@
-# Stremio's home board
+# Addon manager
 
 A page to look after your Stremio addons: put them in the order you want, hide the lists you don't want on the Board, back them up, and uninstall the ones you don't use. It is one static page: no server, no account, nothing is collected.
 

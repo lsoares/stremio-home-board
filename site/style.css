@@ -323,6 +323,13 @@ body:has(dialog[open]) {
 }
 .addons li {
   position: relative;
+  cursor: pointer;
+}
+.addons li:hover:not(:has(.lists:hover)) {
+  border-color: var(--accent);
+}
+.addons .lists {
+  cursor: default;
 }
 .addons li.drop-before::before,
 .addons li.drop-after::after {

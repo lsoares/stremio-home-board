@@ -414,6 +414,14 @@ body:has(dialog[open]) {
   border-radius: 0.25rem;
   background: var(--line);
 }
+.addons .lists .preview.landscape img {
+  width: 5rem;
+  height: 2.8rem;
+}
+.addons .lists .preview.square img {
+  width: 3rem;
+  height: 3rem;
+}
 .addons .lists .preview.faded img {
   opacity: 0.35;
   filter: grayscale(1);

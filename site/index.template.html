@@ -525,6 +525,8 @@ function makeDraggable(entry, addon, catalog, shown) {
 function previewOf(titles, on) {
   const strip = document.createElement("div")
   strip.className = on ? "preview" : "preview faded"
+  // The shape of the first title is the one of the list, as Stremio draws them: a poster, if it says nothing
+  if (["landscape", "square"].includes(titles[0].shape)) strip.classList.add(titles[0].shape)
   for (const { name, poster } of titles) {
     const cover = Object.assign(document.createElement("img"), { src: poster, alt: name, title: name, width: 40, height: 60, referrerPolicy: "no-referrer", loading: "lazy", draggable: false })
     cover.addEventListener("error", () => cover.remove(), { once: true })
@@ -548,7 +550,7 @@ async function askForPreviews(addon) {
     try {
       const answer = await (await fetch(base + "/catalog/" + encodeURIComponent(catalog.type) + "/" + encodeURIComponent(catalog.id) + ".json", { signal: AbortSignal.timeout(5000) })).json()
       if (Array.isArray(answer.metas) && !answer.metas.length) emptied.add(previewKey(addon, catalog))
-      previews[previewKey(addon, catalog)] = (answer.metas || []).filter(meta => meta.poster).slice(0, 8).map(meta => ({ name: meta.name || "", poster: meta.poster }))
+      previews[previewKey(addon, catalog)] = (answer.metas || []).filter(meta => meta.poster).slice(0, 8).map(meta => ({ name: meta.name || "", poster: meta.poster, shape: meta.posterShape }))
     } catch {}
   }))
   if (opened.has(addon.transportUrl)) render()

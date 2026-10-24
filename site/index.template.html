@@ -327,7 +327,7 @@ function item(addon, at) {
   if (passed.length) title.append(flagOf("caution", "Cinemeta doesn't search " + named(passed) + " now, as its Popular list of them is hidden; another addon of yours does it"))
   // Amber, for a list that answered with nothing: it is suspicious, and is only known once the row has been opened and its lists asked
   const hollow = wholeOf(addon).filter(isOnBoardList).filter(catalog => emptied.has(previewKey(addon, catalog)))
-  if (hollow.length) title.append(flagOf("caution", "Suspicious: " + hollow.map(catalog => shortName(addon, catalog)).join(", ") + " answered with no titles at all"))
+  if (hollow.length) title.append(flagOf("caution", "Suspicious: " + hollow.map(catalog => shortName(addon, catalog) + " · " + (catalog.type === "movie" ? "movies" : catalog.type)).join(", ") + " answered with no titles at all"))
   // A red mark colours the row too: it is what wants looking at
   if (title.querySelector(".flag.silent, .flag.warning")) row.classList.add("alarm")
   // The name, which a key opens too, is what opens what is under the row, across all of it: what the addon is of, what it says of itself and its lists

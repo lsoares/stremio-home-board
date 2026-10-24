@@ -700,6 +700,7 @@ dialog .button {
 
 .addons .lists {
   flex-basis: 100%;
+  min-width: 0;
 }
 
 .addons .lists .about {

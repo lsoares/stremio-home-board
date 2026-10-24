@@ -556,8 +556,13 @@ main.manage {
 .toolbar .tool-check[hidden] {
   display: none;
 }
-.toolbar .link-button {
-  margin-left: auto;
+#disconnect {
+  position: absolute;
+  top: 0.9rem;
+  right: var(--edge);
+}
+main:has(#disconnect:not([hidden])) .masthead {
+  padding-right: 4rem;
 }
 main.manage .footer {
   padding-right: var(--edge);

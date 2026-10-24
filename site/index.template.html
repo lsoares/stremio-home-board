@@ -15,6 +15,7 @@ try {
 } catch {}
 </script>
 <main class="manage">
+<button class="link-button" id="disconnect" type="button" title="Forget the Stremio session kept in this browser" hidden>Log out</button>
 <header class="masthead">
 <img class="logo" src="logo.png" alt="" width="72" height="72">
 <div>
@@ -28,7 +29,6 @@ try {
 <button class="tool" id="upgrade" type="button" title="Stremio keeps what each addon said when you installed it, such as its lists, and doesn't ask again by itself. This asks each of your addons what it says now, and puts that in your Stremio, so what is new in them shows up. The lists you hid stay hidden, and the order you gave stays." hidden>Upgrade all</button>
 <label class="tool-check" id="catalog-label" hidden><input type="checkbox" id="catalog" checked> View only catalog addons</label>
 <input type="file" id="restore-file" accept=".json,application/json" hidden>
-<button class="link-button" id="disconnect" type="button" title="Forget the Stremio session kept in this browser" hidden>Log out</button>
 </div>
 <p class="note" id="note">Stremio will ask you to say yes. It lets you put your addons and their lists in order, upgrade them, back them up, restore them and uninstall the ones you pick, nothing else. What you said yes to stays in this browser, never sent to us, until you log out.</p>
 <ol class="addons skeleton" aria-hidden="true">

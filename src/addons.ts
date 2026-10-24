@@ -40,6 +40,18 @@ export function withCinemetaFirst<T extends Serving>(addons: T[]): T[] {
   return rest
 }
 
+// The types that nothing is left to search for: Stremio searches through the lists of the addons that take a search, so when the ones of an addon that had them are hidden
+// (Cinemeta's are its two Popular lists, one for movies and one for series) and no other addon has one of the type, a search finds none of it, though the addon is the first.
+// Kept are the lists of all the addons, as another addon may do the search; whole are the lists the addon had. Plain code, as the ones above
+export function typesWithoutSearch(kept: Catalog[], whole: Catalog[]): string[] {
+  const [then, now] = [whole, kept].map(lists =>
+    (lists as { type: string; extra?: { name: string }[]; extraSupported?: string[] }[])
+      .filter(list => (list.extra || []).some(extra => extra.name === "search") || (list.extraSupported || []).includes("search"))
+      .map(list => list.type),
+  )
+  return [...new Set(then)].filter(type => !now.includes(type))
+}
+
 type Addon = { transportUrl: string; manifest: Manifest }
 
 // The addons put as a backup has them: the ones the backup has and are not installed now come back, after the one before them in the backup; the ones that are

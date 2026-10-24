@@ -313,8 +313,15 @@ function item(addon, at) {
   const flag = flagFor(addon)
   if (flag) title.append(flag)
   // Said on the row of Cinemeta, as the other marks are, and not below the list
-  const warning = addon.manifest.id === "com.linvo.cinemeta" ? cinemetaWarning(visible()) : ""
+  const cinemeta = addon.manifest.id === "com.linvo.cinemeta"
+  const warning = cinemeta ? cinemetaWarning(visible()) : ""
   if (warning) title.append(flagOf("warning", warning))
+  // Red when nothing in the Stremio searches a type, as Cinemeta does it through its two Popular lists and they are hidden; amber when it does not, but another addon does
+  const searchless = cinemeta ? typesWithoutSearch(addons.flatMap(other => other.manifest.catalogs || []), wholeOf(addon)) : []
+  const passed = cinemeta ? typesWithoutSearch(addon.manifest.catalogs || [], wholeOf(addon)).filter(type => !searchless.includes(type)) : []
+  const named = types => types.map(type => (type === "movie" ? "movies" : type)).join(" or ")
+  if (searchless.length) title.append(flagOf("warning", "Nothing in your Stremio searches " + named(searchless) + ": Cinemeta does it through its Popular lists, one for each type, and they are hidden"))
+  if (passed.length) title.append(flagOf("caution", "Cinemeta doesn't search " + named(passed) + " now, as its Popular list of them is hidden; another addon of yours does it"))
   // A red mark colours the row too: it is what wants looking at
   if (title.querySelector(".flag.silent, .flag.warning")) row.classList.add("alarm")
   // The name, which a key opens too, is what opens what is under the row, across all of it: what the addon is of, what it says of itself and its lists

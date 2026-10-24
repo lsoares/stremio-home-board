@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs"
 import { expect, it } from "vitest"
-import { manifestsDiffer, upgradedManifest, withCinemetaFirst } from "../src/addons"
+import { manifestsDiffer, typesWithoutSearch, upgradedManifest, withCinemetaFirst } from "../src/addons"
 
 const rtp = { type: "tv", id: "rtp", name: "RTP Play" }
 const podcasts = { type: "series", id: "rtp-podcasts", name: "Podcasts" }
@@ -97,4 +97,28 @@ it.each([
   const kept = withCinemetaFirst(addons)
 
   expect(kept).toEqual(expected)
+})
+
+const popularMovies = { type: "movie", id: "top", name: "Popular", extra: [{ name: "genre" }, { name: "search" }, { name: "skip" }] }
+const popularSeries = { type: "series", id: "top", name: "Popular", extra: [{ name: "genre" }, { name: "search" }, { name: "skip" }] }
+const tmdbMovies = { type: "movie", id: "tmdb", name: "TMDB", extraSupported: ["search"] }
+const featuredMovies = { type: "movie", id: "imdbRating", name: "Featured", extra: [{ name: "genre" }, { name: "skip" }] }
+
+it.each([
+  ["nothing, when the lists that take a search are kept", [popularMovies, popularSeries], []],
+  ["the type of the list that takes a search and is hidden", [popularSeries], ["movie"]],
+  ["both types, when all the lists that take a search are hidden", [featuredMovies], ["movie", "series"]],
+  ["nothing, when another addon takes the search of that type", [popularSeries, tmdbMovies], []],
+])("tells %s", (_, kept, expected) => {
+  const whole = [popularMovies, popularSeries, featuredMovies]
+
+  const types = typesWithoutSearch(kept, whole)
+
+  expect(types).toEqual(expected)
+})
+
+it("asks for no search of an addon that never had one", () => {
+  const types = typesWithoutSearch([], [featuredMovies])
+
+  expect(types).toEqual([])
 })

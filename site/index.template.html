@@ -409,8 +409,9 @@ function subOf(addon) {
       sub.append(tag)
     }
   }
+  // The count is for the closed row: open, the lists are there to be seen
   const all = wholeOf(addon).filter(isOnBoardList)
-  if (all.length > 1) {
+  if (all.length > 1 && !opened.has(addon.transportUrl)) {
     const now = addon.manifest.catalogs || []
     const shown = all.filter(catalog => now.some(other => sameList(other, catalog)))
     const count = document.createElement("span")

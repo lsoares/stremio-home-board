@@ -565,8 +565,8 @@ main.manage {
 }
 #disconnect {
   position: absolute;
-  top: 0.9rem;
-  right: var(--edge);
+  top: 2rem;
+  right: 2rem;
 }
 main:has(#disconnect:not([hidden])) .masthead {
   padding-right: 4rem;
@@ -602,6 +602,10 @@ main.manage .addons {
   }
 .more {
     margin-top: 0.4rem;
+  }
+#disconnect {
+    top: 0.9rem;
+    right: 0.65rem;
   }
 }
 #connect {

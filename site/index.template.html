@@ -395,10 +395,9 @@ function placeholder() {
 function subOf(addon) {
   const sub = document.createElement("span")
   sub.className = "sub"
-  // Open, first the types the addon is of, one tag each as Stremio's own page has them, and a tag when none of its lists is on the Board
+  // Open, first the types the addon is of, one tag each as Stremio's own page has them
   if (opened.has(addon.transportUrl)) {
-    const onBoard = (addon.manifest.catalogs || []).some(isOnBoardList)
-    for (const kind of [...(addon.manifest.types || []), ...(onBoard ? [] : ["not on the Board"])]) {
+    for (const kind of addon.manifest.types || []) {
       const tag = document.createElement("span")
       tag.className = "kinds"
       tag.textContent = kind

@@ -123,6 +123,8 @@ const answered = {}
 const opened = new Set()
 // The first titles of each list, by the addon's address and the list: what it answered when its row was opened
 const previews = {}
+// The lists that answered with no titles at all, when asked: it may be broken, or have nothing yet
+const emptied = new Set()
 // What Stremio had when the page last read or saved it, and what was done here since, as the changes and not as the result: a save puts the changes
 // over what Stremio has then, so what was done elsewhere meanwhile, as an addon installed, stays; and what is shown is the one with the other
 let server = []
@@ -323,6 +325,9 @@ function item(addon, at) {
   const named = types => types.map(type => (type === "movie" ? "movies" : type)).join(" or ")
   if (searchless.length) title.append(flagOf("warning", "Nothing in your Stremio searches " + named(searchless) + ": Cinemeta does it through its Popular lists, one for each type, and they are hidden"))
   if (passed.length) title.append(flagOf("caution", "Cinemeta doesn't search " + named(passed) + " now, as its Popular list of them is hidden; another addon of yours does it"))
+  // Amber, for a list that answered with nothing: it is suspicious, and is only known once the row has been opened and its lists asked
+  const hollow = wholeOf(addon).filter(isOnBoardList).filter(catalog => emptied.has(previewKey(addon, catalog)))
+  if (hollow.length) title.append(flagOf("caution", "Suspicious: " + hollow.map(catalog => shortName(addon, catalog)).join(", ") + " answered with no titles at all"))
   // A red mark colours the row too: it is what wants looking at
   if (title.querySelector(".flag.silent, .flag.warning")) row.classList.add("alarm")
   // The name, which a key opens too, is what opens what is under the row, across all of it: what the addon is of, what it says of itself and its lists
@@ -542,6 +547,7 @@ async function askForPreviews(addon) {
   await Promise.all(todo.map(async catalog => {
     try {
       const answer = await (await fetch(base + "/catalog/" + encodeURIComponent(catalog.type) + "/" + encodeURIComponent(catalog.id) + ".json", { signal: AbortSignal.timeout(5000) })).json()
+      if (Array.isArray(answer.metas) && !answer.metas.length) emptied.add(previewKey(addon, catalog))
       previews[previewKey(addon, catalog)] = (answer.metas || []).filter(meta => meta.poster).slice(0, 8).map(meta => ({ name: meta.name || "", poster: meta.poster }))
     } catch {}
   }))

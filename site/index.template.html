@@ -325,9 +325,9 @@ function item(addon, at) {
   const named = types => types.map(type => (type === "movie" ? "movies" : type)).join(" or ")
   if (searchless.length) title.append(flagOf("warning", "Nothing in your Stremio searches " + named(searchless) + ": Cinemeta does it through its Popular lists, one for each type, and they are hidden"))
   if (passed.length) title.append(flagOf("caution", "Cinemeta doesn't search " + named(passed) + " now, as its Popular list of them is hidden; another addon of yours does it"))
-  // Amber, for a list that answered with nothing: it is suspicious, and is only known once the row has been opened and its lists asked
-  const hollow = wholeOf(addon).filter(isOnBoardList).filter(catalog => emptied.has(previewKey(addon, catalog)))
-  if (hollow.length) title.append(flagOf("caution", "Suspicious: " + hollow.map(catalog => shortName(addon, catalog) + " · " + (catalog.type === "movie" ? "movies" : catalog.type)).join(", ") + " answered with no titles at all"))
+  // Amber, when all its lists answered with nothing: it is suspicious, and is only known once the row has been opened and its lists asked; one list alone is told under the row
+  const lists = wholeOf(addon).filter(isOnBoardList)
+  if (lists.length && lists.every(catalog => emptied.has(previewKey(addon, catalog)))) title.append(flagOf("caution", "Suspicious: " + (lists.length > 1 ? "all its lists answered" : "its list answered") + " with no titles at all"))
   // A red mark colours the row too: it is what wants looking at
   if (title.querySelector(".flag.silent, .flag.warning")) row.classList.add("alarm")
   // The name, which a key opens too, is what opens what is under the row, across all of it: what the addon is of, what it says of itself and its lists
@@ -464,6 +464,7 @@ function bodyOf(addon, marks) {
     tick.addEventListener("change", () => toggle(addon, catalog, tick.checked))
     label.title = on ? "Untick to hide this list from the Board" : "Tick to show this list on the Board"
     label.append(tick, " " + shortName(addon, catalog) + " · " + (catalog.type === "movie" ? "movies" : catalog.type))
+    if (emptied.has(previewKey(addon, catalog))) label.append(" ", flagOf("caution", "It answered with no titles at all"))
     row.append(label)
     // Only the ones ticked have a place in the order
     if (on) {

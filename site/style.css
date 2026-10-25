@@ -429,7 +429,10 @@ body:has(dialog[open]) {
 .addons .lists .list label {
   color: var(--text);
 }
-.addons .lists .list label + .move {
+.addons .lists .list .peek {
+  margin-left: 0.3rem;
+}
+.addons .lists .list .peek + .move {
   margin-left: auto;
 }
 .addons .lists .list {

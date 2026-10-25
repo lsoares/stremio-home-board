@@ -79,6 +79,11 @@ try {
 <p id="contact-status" role="status" aria-live="polite"></p>
 </form>
 </dialog>
+<dialog id="peek-dialog" aria-labelledby="peek-title">
+<button type="button" class="dialog-x" aria-label="Close">×</button>
+<h2 id="peek-title"></h2>
+<div class="peek-row" id="peek-row"></div>
+</dialog>
 <script>
 // In a block of its own, as the scripts of a page share their names: what is declared here is not seen by the others
 {
@@ -87,6 +92,9 @@ try {
   document.querySelector(".open-contact").addEventListener("click", () => dialog.showModal())
   dialog.querySelector(".dialog-x").addEventListener("click", () => dialog.close())
   dialog.addEventListener("click", event => event.target === dialog && dialog.close())
+  const peeking = document.getElementById("peek-dialog")
+  peeking.querySelector(".dialog-x").addEventListener("click", () => peeking.close())
+  peeking.addEventListener("click", event => event.target === peeking && peeking.close())
   const form = document.getElementById("contact")
   form.addEventListener("submit", async event => {
     event.preventDefault()
@@ -454,6 +462,14 @@ function bodyOf(addon, marks) {
   }
   // An addon with one list has no line for it, to tick or to order, but its posters are shown all the same
   const only = all.length === 1 ? previews[previewKey(addon, all[0])] || [] : []
+  if (all.length === 1) {
+    const solo = document.createElement("div")
+    solo.className = "list"
+    const name = document.createElement("span")
+    name.textContent = shortName(addon, all[0]) + " · " + (all[0].type === "movie" ? "movies" : all[0].type)
+    solo.append(name, peekButton(addon, all[0]))
+    box.append(solo)
+  }
   if (only.length) box.append(previewOf(only, true))
   lists.forEach(catalog => {
     const on = shown.includes(catalog)
@@ -466,6 +482,7 @@ function bodyOf(addon, marks) {
     label.append(tick, " " + shortName(addon, catalog) + " · " + (catalog.type === "movie" ? "movies" : catalog.type))
     if (emptied.has(previewKey(addon, catalog))) label.append(" ", flagOf("caution", "It answered with no titles at all"))
     row.append(label)
+    row.append(peekButton(addon, catalog))
     // Only the ones ticked have a place in the order
     if (on) {
       const place = shown.indexOf(catalog)
@@ -527,12 +544,44 @@ function previewOf(titles, on) {
   strip.className = on ? "preview" : "preview faded"
   // The shape of the first title is the one of the list, as Stremio draws them: a poster, if it says nothing
   if (["landscape", "square"].includes(titles[0].shape)) strip.classList.add(titles[0].shape)
-  for (const { name, poster } of titles) {
+  for (const { name, poster } of titles.slice(0, 8)) {
     const cover = Object.assign(document.createElement("img"), { src: poster, alt: name, title: name, width: 40, height: 60, referrerPolicy: "no-referrer", loading: "lazy", draggable: false })
     cover.addEventListener("error", () => cover.remove(), { once: true })
     strip.append(cover)
   }
   return strip
+}
+
+// The + beside a list: its titles in a row, as Stremio draws them, each a link to its page in Stremio web
+function peekButton(addon, catalog) {
+  const button = document.createElement("button")
+  button.type = "button"
+  button.className = "move peek"
+  button.textContent = "+"
+  button.title = "See what is in it"
+  button.setAttribute("aria-label", "See what is in " + shortName(addon, catalog))
+  button.addEventListener("click", () => peek(addon, catalog))
+  return button
+}
+
+function peek(addon, catalog) {
+  const titles = previews[previewKey(addon, catalog)] || []
+  const dialog = document.getElementById("peek-dialog")
+  document.getElementById("peek-title").textContent = addon.manifest.name + " · " + shortName(addon, catalog)
+  const row = document.getElementById("peek-row")
+  row.replaceChildren(...(titles.length ? titles : [{ name: "" }]).map(title => peekCard(title, titles[0] && titles[0].shape)))
+  dialog.showModal()
+}
+
+function peekCard(title, shape) {
+  if (!title.poster) return Object.assign(document.createElement("p"), { textContent: "Nothing to show" })
+  const card = document.createElement(title.id ? "a" : "span")
+  card.className = ["landscape", "square"].includes(shape) ? shape : ""
+  if (title.id) Object.assign(card, { href: "https://web.stremio.com/#/detail/" + encodeURIComponent(title.type) + "/" + encodeURIComponent(title.id), target: "_blank", rel: "noopener" })
+  const cover = Object.assign(document.createElement("img"), { src: title.poster, alt: "", referrerPolicy: "no-referrer", loading: "lazy", draggable: false })
+  cover.addEventListener("error", () => cover.remove(), { once: true })
+  card.append(cover, title.name)
+  return card
 }
 
 function previewKey(addon, catalog) {
@@ -550,7 +599,7 @@ async function askForPreviews(addon) {
     try {
       const answer = await (await fetch(base + "/catalog/" + encodeURIComponent(catalog.type) + "/" + encodeURIComponent(catalog.id) + ".json", { signal: AbortSignal.timeout(5000) })).json()
       if (Array.isArray(answer.metas) && !answer.metas.length) emptied.add(previewKey(addon, catalog))
-      previews[previewKey(addon, catalog)] = (answer.metas || []).filter(meta => meta.poster).slice(0, 8).map(meta => ({ name: meta.name || "", poster: meta.poster, shape: meta.posterShape }))
+      previews[previewKey(addon, catalog)] = (answer.metas || []).filter(meta => meta.poster).slice(0, 30).map(meta => ({ name: meta.name || "", poster: meta.poster, shape: meta.posterShape, id: meta.id, type: meta.type || catalog.type }))
     } catch {}
   }))
   if (opened.has(addon.transportUrl)) render()

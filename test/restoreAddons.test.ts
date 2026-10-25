@@ -73,3 +73,10 @@ it("keeps what the addon says now, as its version, and takes from the backup onl
 
   expect(collection[0].manifest.version).toBe("2")
 })
+
+it("has a popup with the titles of a list, each a link to its page in Stremio web", () => {
+  const page = readFileSync("site/index.template.html", "utf8")
+
+  expect(page).toContain('<dialog id="peek-dialog"')
+  expect(page).toContain("https://web.stremio.com/#/detail/")
+})

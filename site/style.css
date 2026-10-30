@@ -809,6 +809,7 @@ dialog .button {
 }
 .find-bar {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 .find-bar input,
@@ -823,7 +824,7 @@ dialog .button {
   font-size: 0.9rem;
 }
 .find-bar input {
-  flex: 1;
+  flex: 1 1 12rem;
 }
 .find-bar select option {
   background: var(--card);

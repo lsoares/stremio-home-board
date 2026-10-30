@@ -90,6 +90,7 @@ try {
 <div class="find-bar">
 <input type="search" id="find-search" autofocus aria-label="Search" placeholder="Search addons">
 <select id="find-category" aria-label="Category"><option value="">All categories</option></select>
+<select id="find-sort" aria-label="Order"><option value="rising">Rising</option><option value="stars">Most starred</option><option value="new">Newest</option></select>
 </div>
 <p id="find-heading" class="find-heading"></p>
 <ul class="find-results" id="find-results"></ul>
@@ -572,9 +573,13 @@ function previewOf(titles, on) {
 document.getElementById("more").addEventListener("click", openFinder)
 document.getElementById("find-search").addEventListener("input", () => {
   clearTimeout(finderTimer)
+  // What is rising can't be searched: with words, it is by stars
+  const order = document.getElementById("find-sort")
+  if (order.value === "rising" && document.getElementById("find-search").value.trim()) order.value = "stars"
   finderTimer = setTimeout(look, 350)
 })
 document.getElementById("find-category").addEventListener("change", look)
+document.getElementById("find-sort").addEventListener("change", look)
 let finderTimer
 let lookNumber = 0
 
@@ -601,16 +606,18 @@ async function look() {
   const category = document.getElementById("find-category").value
   const heading = document.getElementById("find-heading")
   const results = document.getElementById("find-results")
-  const rising = !words && !category
+  const order = document.getElementById("find-sort").value
+  const rising = order === "rising" && !words
+  const inCategory = category ? "&category=" + encodeURIComponent(category) : ""
   heading.textContent = "Looking…"
   try {
     const found = rising
-      ? (await askDirectory("/rising?limit=20&nsfw=exclude")).addons
-      : (await askDirectory("/addons?limit=20&nsfw=exclude&sort_by=stars&search=" + encodeURIComponent(words) + (category ? "&category=" + encodeURIComponent(category) : ""))).addons
+      ? (await askDirectory("/rising?limit=20&nsfw=exclude" + inCategory)).addons
+      : (await askDirectory("/addons?limit=20&nsfw=exclude&sort_by=" + (order === "new" ? "createdAt" : "stars") + "&search=" + encodeURIComponent(words) + inCategory)).addons
     // Only the last look is shown, as they can come back in another order
     if (mine !== lookNumber) return
     const open = found.filter(one => !addons.some(have => have.transportUrl === one.manifestUrl || have.manifest.id === one.manifest.id))
-    heading.textContent = open.length ? (rising ? "Rising today" : "Most starred") : "Nothing new found"
+    heading.textContent = open.length ? (rising ? "Rising today" : order === "new" ? "Newest" : "Most starred") : "Nothing new found"
     results.replaceChildren(...open.map(foundCard))
   } catch {
     if (mine !== lookNumber) return

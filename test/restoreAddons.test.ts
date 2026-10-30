@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs"
 import { expect, it } from "vitest"
-import { restoredCollection } from "../src/addons"
+import { installedCollection, restoredCollection } from "../src/addons"
 
 const installed = (name: string, catalogs: { type: string; id: string }[] = [], version = "1") => ({
   transportUrl: `https://${name}.example/manifest.json`,
@@ -79,4 +79,16 @@ it("has a popup with the titles of a list, each a link to its page in Stremio we
 
   expect(page).toContain('<dialog id="peek-dialog"')
   expect(page).toContain("https://web.stremio.com/#/detail/")
+})
+
+it("puts an addon found in the directory after the ones installed", () => {
+  const collection = installedCollection([installed("a"), installed("b")], installed("c"))
+
+  expect(names(collection)).toEqual(["a", "b", "c"])
+})
+
+it("doesn't install again an addon that is installed already", () => {
+  const collection = installedCollection([installed("a"), installed("b")], installed("a"))
+
+  expect(names(collection)).toEqual(["a", "b"])
 })

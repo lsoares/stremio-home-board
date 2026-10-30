@@ -38,7 +38,7 @@ try {
 </ol>
 <button class="button" id="connect" type="button">Connect to Stremio</button>
 <ol class="addons" id="addons" hidden></ol>
-<a href="https://stremio-addons.net" class="more" id="more" target="_blank" rel="noopener" hidden>+ Find more addons</a>
+<button type="button" class="more" id="more" hidden>+ Find more addons</button>
 <div class="footer">
 <div>
 <p id="status" role="status" aria-live="polite"></p>
@@ -84,6 +84,17 @@ try {
 <h2 id="peek-title"></h2>
 <div class="peek-row" id="peek-row"></div>
 </dialog>
+<dialog id="find-dialog" aria-labelledby="find-title">
+<button type="button" class="dialog-x" aria-label="Close">×</button>
+<h2 id="find-title">Find more addons</h2>
+<div class="find-bar">
+<input type="search" id="find-search" autofocus aria-label="Search" placeholder="Search addons">
+<select id="find-category" aria-label="Category"><option value="">All categories</option></select>
+</div>
+<p id="find-heading" class="find-heading"></p>
+<ul class="find-results" id="find-results"></ul>
+<p class="find-credit">From <a href="https://stremio-addons.net" target="_blank" rel="noopener">stremio-addons.net</a>, where there are more</p>
+</dialog>
 <script>
 // In a block of its own, as the scripts of a page share their names: what is declared here is not seen by the others
 {
@@ -92,6 +103,9 @@ try {
   document.querySelector(".open-contact").addEventListener("click", () => dialog.showModal())
   dialog.querySelector(".dialog-x").addEventListener("click", () => dialog.close())
   dialog.addEventListener("click", event => event.target === dialog && dialog.close())
+  const finding = document.getElementById("find-dialog")
+  finding.querySelector(".dialog-x").addEventListener("click", () => finding.close())
+  finding.addEventListener("click", event => event.target === finding && finding.close())
   const peeking = document.getElementById("peek-dialog")
   peeking.querySelector(".dialog-x").addEventListener("click", () => peeking.close())
   peeking.addEventListener("click", event => event.target === peeking && peeking.close())
@@ -114,6 +128,7 @@ try {
 <aside class="suggested" id="suggested" hidden></aside>
 <script type="module">
 const stremioApi = "https://api.strem.io/api"
+const directoryApi = "https://stremio-addons.net/api/v0"
 const firstId = new URLSearchParams(location.search).get("first")
 const status = document.getElementById("status")
 const list = document.getElementById("addons")
@@ -552,6 +567,85 @@ function previewOf(titles, on) {
   return strip
 }
 
+// The directory of stremio-addons.net, which any page may ask: what is rising, or what is found by a name and a category, each with a button to put it in Stremio. If it can't be
+// reached, it says so and the link to the site is there
+document.getElementById("more").addEventListener("click", openFinder)
+document.getElementById("find-search").addEventListener("input", () => {
+  clearTimeout(finderTimer)
+  finderTimer = setTimeout(look, 350)
+})
+document.getElementById("find-category").addEventListener("change", look)
+let finderTimer
+let lookNumber = 0
+
+async function openFinder() {
+  document.getElementById("find-dialog").showModal()
+  const select = document.getElementById("find-category")
+  if (select.options.length === 1) {
+    try {
+      select.append(...(await askDirectory("/categories")).categories.map(one => new Option(one.name, one.slug)))
+    } catch {}
+  }
+  if (!document.getElementById("find-results").childElementCount) look()
+}
+
+async function askDirectory(path) {
+  const answer = await fetch(directoryApi + path, { signal: AbortSignal.timeout(8000) })
+  if (!answer.ok) throw new Error("not answered")
+  return answer.json()
+}
+
+async function look() {
+  const mine = ++lookNumber
+  const words = document.getElementById("find-search").value.trim()
+  const category = document.getElementById("find-category").value
+  const heading = document.getElementById("find-heading")
+  const results = document.getElementById("find-results")
+  const rising = !words && !category
+  heading.textContent = "Looking…"
+  try {
+    const found = rising
+      ? (await askDirectory("/rising?limit=20&nsfw=exclude")).addons
+      : (await askDirectory("/addons?limit=20&nsfw=exclude&sort_by=stars&search=" + encodeURIComponent(words) + (category ? "&category=" + encodeURIComponent(category) : ""))).addons
+    // Only the last look is shown, as they can come back in another order
+    if (mine !== lookNumber) return
+    const open = found.filter(one => !addons.some(have => have.transportUrl === one.manifestUrl || have.manifest.id === one.manifest.id))
+    heading.textContent = open.length ? (rising ? "Rising today" : "Most starred") : "Nothing new found"
+    results.replaceChildren(...open.map(foundCard))
+  } catch {
+    if (mine !== lookNumber) return
+    heading.textContent = "Couldn't reach stremio-addons.net. Try again later, or look there."
+    results.replaceChildren()
+  }
+}
+
+function foundCard(one) {
+  const card = document.createElement("li")
+  const logo = one.manifest.logo ? image(one.manifest.logo) : placeholder()
+  const text = document.createElement("div")
+  const name = document.createElement("strong")
+  name.textContent = one.manifest.name
+  const stars = Object.assign(document.createElement("span"), { className: "stars", textContent: " ★ " + one.stars })
+  name.append(stars)
+  const about = Object.assign(document.createElement("p"), { textContent: one.manifest.description || "" })
+  text.append(name, about)
+  card.append(logo, text, foundAction(one))
+  return card
+}
+
+// An addon that asks to be set up first can't be put in Stremio as it is: it goes to its own page for that
+function foundAction(one) {
+  const hints = one.manifest.behaviorHints || {}
+  if (hints.configurationRequired && one.configureUrl) return Object.assign(document.createElement("a"), { className: "button", href: one.configureUrl, target: "_blank", rel: "noopener", textContent: "Set up" })
+  const button = Object.assign(document.createElement("button"), { type: "button", className: "button", textContent: "Install" })
+  button.addEventListener("click", () => {
+    button.disabled = true
+    button.textContent = "Installed"
+    record({ kind: "install", addon: { transportUrl: one.manifestUrl, transportName: "", manifest: one.manifest, flags: {} } }, "Installed " + one.manifest.name + " ✓")
+  })
+  return button
+}
+
 // The + beside a list: its titles in a row, as Stremio draws them, each a link to its page in Stremio web
 function peekButton(addon, catalog) {
   const button = document.createElement("button")
@@ -817,6 +911,7 @@ function step(collection, change) {
     if (upgraded) upgraded.manifest = JSON.parse(JSON.stringify(change.manifest))
     return collection
   }
+  if (change.kind === "install") return installedCollection(collection, change.addon)
   if (change.kind === "move") return put(collection, change)
   if (change.kind === "restore") return restoredCollection(collection, change.addons)
   const addon = collection.find(other => other.transportUrl === change.address)

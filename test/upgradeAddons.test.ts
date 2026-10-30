@@ -12,10 +12,11 @@ it("has a button at the top of the page to upgrade all the addons, which says wh
   expect(page).toMatch(/<button[^>]*id="upgrade"[^>]*title="Stremio keeps what each addon said when you installed it[^"]*"/)
 })
 
-it("links, in the box after the addons, to the site where the addons of the community are found, to install new ones", () => {
+it("has, in the box after the addons, a button that opens the directory of the community, to install new ones, with a link to its site", () => {
   const page = readFileSync("site/index.template.html", "utf8")
 
-  expect(page).toMatch(/<\/ol>\s*<a href="https:\/\/stremio-addons\.net"[^>]*>\+ Find more addons<\/a>/)
+  expect(page).toMatch(/<\/ol>\s*<button[^>]*id="more"[^>]*>\+ Find more addons<\/button>/)
+  expect(page).toMatch(/<dialog id="find-dialog"[\s\S]*<a href="https:\/\/stremio-addons\.net"[^>]*>stremio-addons\.net<\/a>/)
 })
 
 it("takes what the addon says now, as its version and its name", () => {

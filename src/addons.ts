@@ -78,6 +78,12 @@ export function restoredCollection(current: Addon[], backup: Addon[]): Addon[] {
   return result
 }
 
+// The addon put at the end of the ones installed, as Stremio does it, unless one with that address is there already. Plain code, as the ones above
+export function installedCollection(current: Addon[], addon: Addon): Addon[] {
+  if (current.some(other => other.transportUrl === addon.transportUrl)) return current
+  return [...current, JSON.parse(JSON.stringify(addon))]
+}
+
 // Whether two manifests say something else, and not only that Stremio keeps one in another form than the addon gives it: with fields it adds (empty lists, nulls),
 // the keys in another order, and the lists that ask for something told in extraRequired and extraSupported and not in extra; of what a list asks for the page keeps the
 // names and which are required, as the options of a genre are not what is upgraded. Plain code, as the one above

@@ -288,7 +288,11 @@ body:has(dialog[open]) {
 }
 .more {
   display: block;
+  width: 100%;
   margin-top: 0.5rem;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
   padding: 0.55rem 0.7rem;
   border: 1px dashed var(--line);
   border-radius: 12px;
@@ -797,4 +801,82 @@ dialog .button {
 }
 .peek-row p {
   margin: 0;
+}
+
+#find-dialog {
+  width: min(36rem, calc(100vw - 2rem));
+  padding: 1rem 1.5rem 1.25rem;
+}
+.find-bar {
+  display: flex;
+  gap: 0.5rem;
+}
+.find-bar input,
+.find-bar select {
+  min-width: 0;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+.find-bar input {
+  flex: 1;
+}
+.find-bar select option {
+  background: var(--card);
+}
+dialog .find-heading {
+  margin: 0.9rem 0 0.4rem;
+  font-size: 0.8rem;
+}
+.find-results {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.4rem;
+  max-height: 55vh;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.find-results li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.6rem;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.find-results div {
+  flex: 1;
+  min-width: 0;
+}
+.find-results p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.find-results .stars {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+.find-results .button {
+  flex: none;
+  width: auto;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+dialog .find-credit {
+  margin: 0.9rem 0 0;
+  font-size: 0.75rem;
 }

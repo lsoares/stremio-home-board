@@ -98,7 +98,7 @@ try {
 </div>
 <p id="find-heading" class="find-heading"></p>
 <ul class="find-results" id="find-results"></ul>
-<p class="find-credit">From <a href="https://stremio-addons.net" target="_blank" rel="noopener">stremio-addons.net</a>, where there are more</p>
+<p class="find-credit">More at <a id="find-more" href="https://stremio-addons.net/addons" target="_blank" rel="noopener">stremio-addons.net</a></p>
 </dialog>
 <script>
 // In a block of its own, as the scripts of a page share their names: what is declared here is not seen by the others
@@ -623,6 +623,12 @@ async function look() {
   const order = finderOrder
   const rising = order === "rising" && !words
   const inCategory = category ? "&category=" + encodeURIComponent(category) : ""
+  // The site takes the category and the order from its address, not the words: popular is what it has for the stars, and it has nothing for what is rising
+  const there = new URLSearchParams()
+  const named = document.getElementById("find-category").selectedOptions[0].textContent
+  if (category) there.set("categories", named)
+  if (order !== "rising") there.set("sort", order === "new" ? "new" : "popular")
+  document.getElementById("find-more").href = "https://stremio-addons.net/addons" + (there.size ? "?" + there : "")
   heading.textContent = "Looking…"
   try {
     const found = rising

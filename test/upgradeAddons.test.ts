@@ -16,7 +16,7 @@ it("has, in the box after the addons, a button that opens the directory of the c
   const page = readFileSync("site/index.template.html", "utf8")
 
   expect(page).toMatch(/<\/ol>\s*<button[^>]*id="more"[^>]*>\+ Find more addons<\/button>/)
-  expect(page).toMatch(/<dialog id="find-dialog"[\s\S]*<a href="https:\/\/stremio-addons\.net"[^>]*>stremio-addons\.net<\/a>/)
+  expect(page).toMatch(/<dialog id="find-dialog"[\s\S]*<a id="find-more" href="https:\/\/stremio-addons\.net\/addons"[^>]*>stremio-addons\.net<\/a>/)
 })
 
 it("takes what the addon says now, as its version and its name", () => {

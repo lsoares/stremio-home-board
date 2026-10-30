@@ -866,7 +866,7 @@ dialog .find-heading {
   overflow: hidden;
 }
 .find-results .stars {
-  color: var(--muted);
+  color: var(--warn);
   font-size: 0.75rem;
   font-weight: 400;
 }

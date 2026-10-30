@@ -623,8 +623,10 @@ function foundCard(one) {
   const card = document.createElement("li")
   const logo = one.manifest.logo ? image(one.manifest.logo) : placeholder()
   const text = document.createElement("div")
+  // Its page in the directory, in another tab: what the addon says of itself, and what others say of it
   const name = document.createElement("strong")
-  name.textContent = one.manifest.name
+  const page = Object.assign(document.createElement("a"), { href: one.url, target: "_blank", rel: "noopener", textContent: one.manifest.name })
+  name.append(page)
   const stars = Object.assign(document.createElement("span"), { className: "stars", textContent: " ★ " + one.stars })
   name.append(stars)
   const about = Object.assign(document.createElement("p"), { textContent: one.manifest.description || "" })

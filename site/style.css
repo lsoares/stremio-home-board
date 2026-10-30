@@ -880,3 +880,11 @@ dialog .find-credit {
   margin: 0.9rem 0 0;
   font-size: 0.75rem;
 }
+
+.find-results strong a {
+  color: inherit;
+  text-decoration: none;
+}
+.find-results strong a:hover {
+  color: var(--accent);
+}

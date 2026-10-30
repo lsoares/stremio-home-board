@@ -889,3 +889,31 @@ dialog .find-credit {
 .find-results strong a:hover {
   color: var(--accent);
 }
+
+.find-sort {
+  display: flex;
+  gap: 1.1rem;
+  margin-top: 0.9rem;
+  font-size: 0.85rem;
+}
+.find-sort button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+.find-sort button:hover {
+  color: var(--accent);
+}
+.find-sort button[aria-pressed="true"] {
+  color: var(--text);
+  font-weight: 600;
+}
+dialog .find-heading {
+  margin: 0.5rem 0 0.4rem;
+}
+dialog .find-heading:empty {
+  display: none;
+}

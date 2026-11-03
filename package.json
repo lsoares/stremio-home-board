@@ -5,7 +5,8 @@
   "scripts": {
     "build": "node build.mjs",
     "test": "vitest run --dir test",
-    "check": "biome check . && knip && tsc --noEmit -p . && vitest run --dir test"
+    "check": "biome check . && knip && tsc --noEmit -p . && vitest run --dir test",
+    "postinstall": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",

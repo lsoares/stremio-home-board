@@ -296,7 +296,6 @@ function suggest() {
     ["Fireplace", "cozy live streams", "https://lsoares.github.io/fireplace/"],
     ["Watchlane", "your YouTube channels", "https://stremio-youtube.lsoares.workers.dev/"],
     ["Simkl Watch Next", "what to watch next", "https://simkl-watch-next.simkl-watch-next.workers.dev/"],
-    ["SkylineWebcams", "live webcams", "https://skyline-webcams-stremio.lsoares.workers.dev/"],
   ].filter(([, , page]) => !addons.some(addon => addon.transportUrl.startsWith(page)))
   const box = document.getElementById("suggested")
   box.hidden = !mine.length

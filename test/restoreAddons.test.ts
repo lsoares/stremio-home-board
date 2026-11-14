@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs"
 import { expect, it } from "vitest"
-import { installedCollection, movedCollection, restoredCollection } from "../src/addons"
+import { firstChange, installedCollection, movedCollection, restoredCollection } from "../src/addons"
 
 const installed = (name: string, catalogs: { type: string; id: string }[] = [], version = "1") => ({
   transportUrl: `https://${name}.example/manifest.json`,
@@ -118,4 +118,27 @@ it("opens on the view the address asks for, with ?view=, and on the one of the l
 
   expect(page).toContain('new URLSearchParams(location.search).get("view")')
   expect(page).toContain('["catalog", "streams", "all"]')
+})
+
+const first = (collection: ReturnType<typeof installed>[], shown: ReturnType<typeof installed>[], id: string) => {
+  const change = firstChange(collection, shown, id)
+  return change ? names(movedCollection(collection, change, () => true)) : "first already"
+}
+
+it("puts an addon first below Cinemeta, even when it is above it and Cinemeta is not among the ones shown", () => {
+  const collection = [installed("a"), installed("com.linvo.cinemeta"), installed("x"), installed("b")]
+
+  expect(first(collection, [collection[0], collection[2], collection[3]], "a")).toEqual(["com.linvo.cinemeta", "a", "x", "b"])
+})
+
+it("puts an addon first below Cinemeta, before the first of the ones shown that is below it", () => {
+  const collection = [installed("a"), installed("com.linvo.cinemeta"), installed("x"), installed("b")]
+
+  expect(first(collection, [collection[0], collection[2], collection[3]], "b")).toEqual(["a", "com.linvo.cinemeta", "b", "x"])
+})
+
+it("says nothing is to be done when the addon is first below Cinemeta already", () => {
+  const collection = [installed("a"), installed("com.linvo.cinemeta"), installed("x")]
+
+  expect(first(collection, [collection[0], collection[2]], "x")).toBe("first already")
 })

@@ -267,13 +267,11 @@ async function load(key) {
 // What the Configure button of an addon asks: that one first, as it is the one that was installed last. It is the addon by its id, from any address,
 // as this page is for any addon, and the other addons of this author send their people here too
 function putFirst() {
-  const shown = shownNow()
-  const at = shown.findIndex(addon => addon.manifest.id === firstId)
-  // First is second, after Cinemeta, so the addons that find streams still have it above what asked; where there is none, first
-  const top = shown.findIndex(addon => addon.manifest.id === "com.linvo.cinemeta") + 1
-  if (at === -1) say("That addon isn't installed in your Stremio yet. Install it first, and come back.", "bad")
-  else if (at === top || at === top - 1) say("It's already first. Drag the others if you want them in another order.")
-  else move(at, top > at ? top - 1 : top)
+  // First is second, after Cinemeta, so the addons that find streams still have it above what asked; it is told among all the addons, as Cinemeta may not be among the ones shown
+  const change = firstChange(addons, shownNow(), firstId)
+  if (change) record({ kind: "move", ...change, among: "all" })
+  else if (shownNow().some(addon => addon.manifest.id === firstId)) say("It's already first. Drag the others if you want them in another order.")
+  else say("That addon isn't installed in your Stremio yet. Install it first, and come back.", "bad")
 }
 
 // Only the addons with lists on the Board, in their order; the others are not shown

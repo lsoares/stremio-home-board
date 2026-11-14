@@ -1,5 +1,6 @@
 import { cp, mkdir, readFile, writeFile } from "node:fs/promises"
 import {
+  firstChange,
   howIs,
   installedCollection,
   manifestsDiffer,
@@ -22,6 +23,7 @@ const functions = [
   howIs,
   typesWithoutSearch,
   movedCollection,
+  firstChange,
 ]
   .map(one => `const ${one.name} = ${one.toString()}`)
   .join("\n")

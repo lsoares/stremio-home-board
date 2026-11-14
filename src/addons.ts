@@ -168,3 +168,18 @@ export function movedCollection<T extends { transportUrl: string }>(
   let next = 0
   return collection.map(addon => (only(addon) ? rest[next++] : addon))
 }
+
+// Where an addon that asks to be first goes: before the first of the ones shown that is below Cinemeta in the whole collection, even when Cinemeta is not among the ones
+// shown, as it is in the view of the addons that give streams, so it never goes above it. Nothing when it is first already. Plain code, as the ones above
+export function firstChange<T extends { transportUrl: string; manifest: { id?: string } }>(
+  all: T[],
+  shown: T[],
+  id: string,
+): { address: string; before: string } | undefined {
+  const moved = shown.find(addon => addon.manifest.id === id)
+  if (!moved) return undefined
+  const cinemeta = all.findIndex(addon => addon.manifest.id === "com.linvo.cinemeta")
+  const below = shown.filter(addon => all.indexOf(addon) > cinemeta)
+  if (id === "com.linvo.cinemeta" || below[0] === moved) return undefined
+  return { address: moved.transportUrl, before: below.find(addon => addon !== moved)?.transportUrl || "" }
+}

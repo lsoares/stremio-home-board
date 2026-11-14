@@ -112,3 +112,10 @@ it("moves an addon among the ones it is told of only, and the others stay where 
 
   expect(names(result)).toEqual(["b", "search", "a"])
 })
+
+it("opens on the view the address asks for, with ?view=, and on the one of the lists for the Board when it asks for none", () => {
+  const page = readFileSync("site/index.template.html", "utf8")
+
+  expect(page).toContain('new URLSearchParams(location.search).get("view")')
+  expect(page).toContain('["catalog", "streams", "all"]')
+})

@@ -162,7 +162,9 @@ let dragFrom = -1
 // The list being dragged, and the addon it is of, as a list goes only among the ones of its own addon
 let listDrag = null
 // Which addons are shown: the ones with lists for the Board, the ones that give streams, or all of them; the ones shown can be put in order among each other, as the order of the streams is of all of them
-let view = "catalog"
+// and `?view=` opens it on one of them, for the addons that send people here to put themselves first among the ones they are with
+let view = ["catalog", "streams", "all"].find(one => one === new URLSearchParams(location.search).get("view")) || "catalog"
+document.getElementById("catalog").value = view
 
 // FUNCTIONS
 
@@ -265,7 +267,7 @@ async function load(key) {
 // What the Configure button of an addon asks: that one first, as it is the one that was installed last. It is the addon by its id, from any address,
 // as this page is for any addon, and the other addons of this author send their people here too
 function putFirst() {
-  const shown = visible()
+  const shown = shownNow()
   const at = shown.findIndex(addon => addon.manifest.id === firstId)
   // First is second, after Cinemeta, so the addons that find streams still have it above what asked; where there is none, first
   const top = shown.findIndex(addon => addon.manifest.id === "com.linvo.cinemeta") + 1

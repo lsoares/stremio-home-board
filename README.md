@@ -16,6 +16,8 @@ A page to look after your Stremio addons: put them in the order you want, hide t
 
 `?first=<addon id>` puts that addon second, after Cinemeta (first when there is no Cinemeta); addons use it for a "put me first" button.
 
+`?view=catalog|streams|all` opens the page on that view (the addons with lists for the Board, the ones that give streams, or all of them), and `?first=` puts the addon second among the ones of that view, so an addon whose streams matter more than its lists can send people with `?first=<id>&view=streams`.
+
 ## What it knows, and where it goes
 
 Stremio's own page asks you to say yes and sends you back with your session after a `#`, which never reaches a server. The page keeps it in your browser (`localStorage`) until you press Log out, and uses it only to read and write your addon collection at `api.strem.io`. To know every list an addon has, it asks the addon for its manifest at its own address (not for the ones on your computer or your network).

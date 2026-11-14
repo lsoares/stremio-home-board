@@ -12,7 +12,7 @@ A page to look after your Stremio addons: put them in the order you want, hide t
 - **Upgrade all.** Stremio keeps what each addon said when you installed it and doesn't ask again. This asks each addon what it says now and puts it in your account, keeping the lists you hid and the order you gave.
 - **Back up and Restore.** Back up downloads a file with your addons as they are. Restore reads it, shows what would change (addons to put back, lists, order), and only does it when you say so. Nothing is uninstalled by a restore.
 - **Configure** opens the addon's own page, in another tab.
-- Only the addons with lists for the Board are shown, and a line says so; the others are left alone, in the places they had.
+- Only the addons with lists for the Board are shown, and a line says so; pick *stream sources* or *all addons* in the selector to see the others, and put the ones shown in order: the order of the streams is of all of them. The ones not shown are left alone, in the places they had.
 
 `?first=<addon id>` puts that addon second, after Cinemeta (first when there is no Cinemeta); addons use it for a "put me first" button.
 

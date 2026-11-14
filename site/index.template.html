@@ -27,7 +27,7 @@ try {
 <button class="tool" id="backup" type="button" title="Download a file with your addons as they are now, to put them back later with Restore. It has the addresses of your addons, and some have keys in them: keep it to yourself." hidden>Back up</button>
 <button class="tool" id="restore" type="button" title="Put your addons back from a file made with Back up. It shows what will change first, and nothing is uninstalled." hidden>Restore</button>
 <button class="tool" id="upgrade" type="button" title="Stremio keeps what each addon said when you installed it, such as its lists, and doesn't ask again by itself. This asks each of your addons what it says now, and puts that in your Stremio, so what is new in them shows up. The lists you hid stay hidden, and the order you gave stays." hidden>Upgrade all</button>
-<label class="tool-check" id="catalog-label" hidden><input type="checkbox" id="catalog" checked> View only catalog addons</label>
+<label class="tool-check" id="catalog-label" hidden>View <select id="catalog"><option value="catalog">catalog addons</option><option value="streams">stream sources</option><option value="all">all addons</option></select></label>
 <input type="file" id="restore-file" accept=".json,application/json" hidden>
 </div>
 <p class="note" id="note">Stremio will ask you to say yes. It lets you put your addons and their lists in order, upgrade them, back them up, restore them and uninstall the ones you pick, nothing else. What you said yes to stays in this browser, never sent to us, until you log out.</p>
@@ -161,8 +161,8 @@ let pending = []
 let dragFrom = -1
 // The list being dragged, and the addon it is of, as a list goes only among the ones of its own addon
 let listDrag = null
-// Whether only the addons with lists for the Board are shown; unticked, the others are shown too, to see and uninstall, and then the order can't be changed, as it is of the ones on the Board
-let onlyCatalog = true
+// Which addons are shown: the ones with lists for the Board, the ones that give streams, or all of them; the ones shown can be put in order among each other, as the order of the streams is of all of them
+let view = "catalog"
 
 // FUNCTIONS
 
@@ -175,7 +175,7 @@ document.getElementById("confirm").addEventListener("click", event => {
 })
 document.getElementById("upgrade").addEventListener("click", upgradeAll)
 document.getElementById("catalog").addEventListener("change", event => {
-  onlyCatalog = event.target.checked
+  view = event.target.value
   render()
 })
 document.getElementById("backup").addEventListener("click", backUp)
@@ -279,14 +279,23 @@ function visible() {
   return addons.filter(isOnBoard)
 }
 
+// Whether the addon is in the view: the one shown now, or the one a move was done in
+function inView(addon, among = view) {
+  if (among === "streams") return (addon.manifest.resources || []).some(resource => (typeof resource === "string" ? resource : resource.name) === "stream")
+  return among === "all" || isOnBoard(addon)
+}
+
+// The addons as they are shown, which are the ones that can be moved among each other
+function shownNow() {
+  return addons.filter(addon => inView(addon))
+}
+
 function render() {
   const onBoard = visible()
-  const shown = onlyCatalog ? onBoard : addons
+  const shown = shownNow()
   list.replaceChildren(...shown.map(item))
   const behind = addons.filter(addon => healthOf(addon) === "outdated").length
   document.getElementById("upgrade").textContent = behind ? "Upgrade all (" + behind + ")" : "Upgrade all"
-  // Offered only when there are addons with no lists for the Board, which are not shown while it is ticked
-  document.getElementById("catalog-label").hidden = onBoard.length === addons.length
   suggest()
 }
 
@@ -323,7 +332,7 @@ function item(addon, at) {
   const row = document.createElement("li")
   // Dragged by the top of it, where the icon and the name are, and not by its lists or its buttons: it is made draggable as the pointer goes down there, and not before
   row.addEventListener("pointerdown", event => {
-    row.draggable = onlyCatalog && !event.target.closest(".list, button, a, input, label")
+    row.draggable = !event.target.closest(".list, button, a, input, label")
   })
   row.addEventListener("pointerup", () => {
     row.draggable = false
@@ -367,7 +376,7 @@ function item(addon, at) {
     toggleOpen(addon)
   })
   name.append(title, subOf(addon))
-  row.append(logo, name, configureLink(addon), ...(onlyCatalog ? [arrow(addon, at, -1, "▲", "up"), arrow(addon, at, 1, "▼", "down")] : []), uninstallButton(addon))
+  row.append(logo, name, configureLink(addon), arrow(addon, at, -1, "▲", "up"), arrow(addon, at, 1, "▼", "down"), uninstallButton(addon))
   if (opened.has(addon.transportUrl)) row.append(bodyOf(addon, [...title.querySelectorAll(".flag")]))
   // A click on the row opens or closes its lists, except on what has a click of its own
   row.addEventListener("click", event => {
@@ -1039,7 +1048,7 @@ function arrow(addon, at, step, symbol, direction) {
   button.textContent = symbol
   button.setAttribute("aria-label", "Move " + addon.manifest.name + " " + direction)
   button.title = "Move " + direction
-  button.disabled = at + step < 0 || at + step >= visible().length
+  button.disabled = at + step < 0 || at + step >= shownNow().length
   button.addEventListener("click", () => move(at, at + step, direction))
   return button
 }
@@ -1075,22 +1084,15 @@ function uninstall(addon) {
 
 // Said by the one it goes before, and not by its place, as the places are not the same when it is put over what Stremio has then
 function move(from, to, direction) {
-  const rest = visible()
+  const rest = shownNow()
   const [moved] = rest.splice(from, 1)
-  record({ kind: "move", address: moved.transportUrl, before: rest[to] ? rest[to].transportUrl : "" })
+  record({ kind: "move", address: moved.transportUrl, before: rest[to] ? rest[to].transportUrl : "", among: view })
   if (direction) list.children[to].querySelector('[aria-label$="' + direction + '"]').focus()
 }
 
-// The ones shown change places among the places those same ones had, so the others never move
+// The ones it was done among, in the view it was done in, change places among the places those same ones had, so the others never move
 function put(collection, change) {
-  const shown = collection.filter(isOnBoard)
-  const moved = shown.find(addon => addon.transportUrl === change.address)
-  if (!moved) return collection
-  const rest = shown.filter(addon => addon !== moved)
-  const at = rest.findIndex(addon => addon.transportUrl === change.before)
-  rest.splice(at === -1 ? rest.length : at, 0, moved)
-  let next = 0
-  return collection.map(addon => (isOnBoard(addon) ? rest[next++] : addon))
+  return movedCollection(collection, change, addon => inView(addon, change.among || "catalog"))
 }
 
 // What the page tells, below the list, green when it went well and red when it didn't

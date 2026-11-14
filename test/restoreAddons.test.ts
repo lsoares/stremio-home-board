@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs"
 import { expect, it } from "vitest"
-import { installedCollection, restoredCollection } from "../src/addons"
+import { installedCollection, movedCollection, restoredCollection } from "../src/addons"
 
 const installed = (name: string, catalogs: { type: string; id: string }[] = [], version = "1") => ({
   transportUrl: `https://${name}.example/manifest.json`,
@@ -91,4 +91,24 @@ it("doesn't install again an addon that is installed already", () => {
   const collection = installedCollection([installed("a"), installed("b")], installed("a"))
 
   expect(names(collection)).toEqual(["a", "b"])
+})
+
+it("moves an addon among all of them, the ones with no lists included, when it is told to", () => {
+  const collection = [installed("a", [{ type: "movie", id: "x" }]), installed("search"), installed("b", [{ type: "movie", id: "y" }])]
+
+  const result = movedCollection(collection, { address: collection[2].transportUrl, before: collection[1].transportUrl }, () => true)
+
+  expect(names(result)).toEqual(["a", "b", "search"])
+})
+
+it("moves an addon among the ones it is told of only, and the others stay where they were", () => {
+  const collection = [installed("a", [{ type: "movie", id: "x" }]), installed("search"), installed("b", [{ type: "movie", id: "y" }])]
+
+  const result = movedCollection(
+    collection,
+    { address: collection[2].transportUrl, before: collection[0].transportUrl },
+    one => one.manifest.catalogs.length > 0,
+  )
+
+  expect(names(result)).toEqual(["b", "search", "a"])
 })

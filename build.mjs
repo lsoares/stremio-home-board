@@ -3,6 +3,7 @@ import {
   howIs,
   installedCollection,
   manifestsDiffer,
+  movedCollection,
   restoredCollection,
   typesWithoutSearch,
   upgradedManifest,
@@ -11,7 +12,17 @@ import {
 } from "./src/addons.ts"
 
 // The page is one file with its style and two pictures: the functions that are tested are written into it from their source, so what is tested is what runs
-const functions = [installedCollection, upgradedManifest, manifestsDiffer, restoredCollection, withCinemetaFirst, whatIsNew, howIs, typesWithoutSearch]
+const functions = [
+  installedCollection,
+  upgradedManifest,
+  manifestsDiffer,
+  restoredCollection,
+  withCinemetaFirst,
+  whatIsNew,
+  howIs,
+  typesWithoutSearch,
+  movedCollection,
+]
   .map(one => `const ${one.name} = ${one.toString()}`)
   .join("\n")
 const template = await readFile("site/index.template.html", "utf8")

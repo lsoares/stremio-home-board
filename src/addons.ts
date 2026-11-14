@@ -151,3 +151,20 @@ export function howIs(current: Manifest, fresh: Manifest | undefined, known: Cat
   if (!fresh) return "silent"
   return whatIsNew(current, fresh, known).length ? "outdated" : "up to date"
 }
+
+// The addon of the address goes before the one of `before`, or last when there is none, among the ones `only` takes, which change places among the places those same ones
+// had, so the others never move. Plain code, as the ones above
+export function movedCollection<T extends { transportUrl: string }>(
+  collection: T[],
+  change: { address: string; before: string },
+  only: (addon: T) => boolean,
+): T[] {
+  const among = collection.filter(only)
+  const moved = among.find(addon => addon.transportUrl === change.address)
+  if (!moved) return collection
+  const rest = among.filter(addon => addon !== moved)
+  const at = rest.findIndex(addon => addon.transportUrl === change.before)
+  rest.splice(at === -1 ? rest.length : at, 0, moved)
+  let next = 0
+  return collection.map(addon => (only(addon) ? rest[next++] : addon))
+}

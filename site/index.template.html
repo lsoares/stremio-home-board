@@ -27,7 +27,14 @@ try {
 <button class="tool" id="backup" type="button" title="Download a file with your addons as they are now, to put them back later with Restore. It has the addresses of your addons, and some have keys in them: keep it to yourself." hidden>Back up</button>
 <button class="tool" id="restore" type="button" title="Put your addons back from a file made with Back up. It shows what will change first, and nothing is uninstalled." hidden>Restore</button>
 <button class="tool" id="upgrade" type="button" title="Stremio keeps what each addon said when you installed it, such as its lists, and doesn't ask again by itself. This asks each of your addons what it says now, and puts that in your Stremio, so what is new in them shows up. The lists you hid stay hidden, and the order you gave stays." hidden>Upgrade all</button>
-<label class="tool-check" id="catalog-label" hidden>View <select id="catalog"><option value="catalog">catalog addons</option><option value="streams">stream sources</option><option value="all">all addons</option></select></label>
+<div class="tool-check" id="catalog-label" role="radiogroup" aria-labelledby="view-title" hidden>
+<span id="view-title">View</span>
+<div class="segmented">
+<label><input type="radio" name="view" value="all" checked><span>All</span></label>
+<label><input type="radio" name="view" value="catalog"><span>Catalog</span></label>
+<label><input type="radio" name="view" value="streams"><span>Streams</span></label>
+</div>
+</div>
 <input type="file" id="restore-file" accept=".json,application/json" hidden>
 </div>
 <p class="note" id="note">Stremio will ask you to say yes. It lets you put your addons and their lists in order, upgrade them, back them up, restore them and uninstall the ones you pick, nothing else. What you said yes to stays in this browser, never sent to us, until you log out.</p>
@@ -163,8 +170,8 @@ let dragFrom = -1
 let listDrag = null
 // Which addons are shown: the ones with lists for the Board, the ones that give streams, or all of them; the ones shown can be put in order among each other, as the order of the streams is of all of them
 // and `?view=` opens it on one of them, for the addons that send people here to put themselves first among the ones they are with
-let view = ["catalog", "streams", "all"].find(one => one === new URLSearchParams(location.search).get("view")) || "catalog"
-document.getElementById("catalog").value = view
+let view = ["catalog", "streams", "all"].find(one => one === new URLSearchParams(location.search).get("view")) || "all"
+document.querySelector(`input[name="view"][value="${view}"]`).checked = true
 
 // FUNCTIONS
 
@@ -176,7 +183,7 @@ document.getElementById("confirm").addEventListener("click", event => {
   if (event.target === event.currentTarget) event.currentTarget.close()
 })
 document.getElementById("upgrade").addEventListener("click", upgradeAll)
-document.getElementById("catalog").addEventListener("change", event => {
+document.getElementById("catalog-label").addEventListener("change", event => {
   view = event.target.value
   render()
 })

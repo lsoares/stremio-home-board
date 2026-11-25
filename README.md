@@ -12,11 +12,11 @@ A page to look after your Stremio addons: put them in the order you want, hide t
 - **Upgrade all.** Stremio keeps what each addon said when you installed it and doesn't ask again. This asks each addon what it says now and puts it in your account, keeping the lists you hid and the order you gave.
 - **Back up and Restore.** Back up downloads a file with your addons as they are. Restore reads it, shows what would change (addons to put back, lists, order), and only does it when you say so. Nothing is uninstalled by a restore.
 - **Configure** opens the addon's own page, in another tab.
-- Only the addons with lists for the Board are shown, and a line says so; pick *stream sources* or *all addons* in the selector to see the others, and put the ones shown in order: the order of the streams is of all of them. The ones not shown are left alone, in the places they had.
+- All the addons are shown at first; the buttons *All*, *Catalog* (the addons with lists for the Board) and *Streams* (the ones that give streams) show only those, and put the ones shown in order: the order of the streams is of all of them. The ones not shown are left alone, in the places they had.
 
 `?first=<addon id>` puts that addon second, after Cinemeta (first when there is no Cinemeta); addons use it for a "put me first" button.
 
-`?view=catalog|streams|all` opens the page on that view (the addons with lists for the Board, the ones that give streams, or all of them), and `?first=` puts the addon second among the ones of that view, so an addon whose streams matter more than its lists can send people with `?first=<id>&view=streams`.
+`?view=catalog|streams|all` opens the page on that view (the addons with lists for the Board, the ones that give streams, or all of them, which is what it shows with none), and `?first=` puts the addon second among the ones of that view, so an addon whose streams matter more than its lists can send people with `?first=<id>&view=streams`.
 
 ## What it knows, and where it goes
 

@@ -572,11 +572,45 @@ main.manage {
 }
 .toolbar .tool-check {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.5rem;
   color: var(--muted);
   font-size: 0.85rem;
+}
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.segmented label {
+  position: relative;
+  padding: 0.1rem 0.7rem;
+  white-space: nowrap;
   cursor: pointer;
+}
+.segmented label + label {
+  border-inline-start: 1px solid var(--line);
+}
+.segmented input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.segmented label:hover:not(:has(input:checked)) {
+  color: var(--accent);
+}
+.segmented label:has(input:checked) {
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.segmented label:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 .toolbar .tool-check[hidden] {
   display: none;
